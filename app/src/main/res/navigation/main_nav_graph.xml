@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav_graph.xml"
+    app:startDestination="@id/songsFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.example.baseproject.fragments.SplashFragment"
+        android:label="fragment_splash"
+        tools:layout="@layout/fragment_splash">
+        <action
+            android:id="@+id/action_splashFragment_to_introActivity"
+            app:destination="@id/introActivity" />
+        <action
+            android:id="@+id/action_splashFragment_to_songsFragment"
+            app:destination="@id/songsFragment" />
+    </fragment>
+    <activity
+        android:id="@+id/introActivity"
+        android:name="com.example.baseproject.activities.IntroActivity"
+        android:label="activity_intro"
+        tools:layout="@layout/activity_intro" />
+    <fragment
+        android:id="@+id/songsFragment"
+        android:name="com.example.baseproject.fragments.SongsFragment"
+        android:label="fragment_songs"
+        tools:layout="@layout/fragment_songs" />
+    <fragment
+        android:id="@+id/playlistsFragment"
+        android:name="com.example.baseproject.fragments.PlaylistsFragment"
+        android:label="fragment_playlists"
+        tools:layout="@layout/fragment_playlists" />
+    <fragment
+        android:id="@+id/foldersFragment"
+        android:name="com.example.baseproject.fragments.FoldersFragment"
+        android:label="fragment_folders"
+        tools:layout="@layout/fragment_folders" />
+    <fragment
+        android:id="@+id/libraryFragment"
+        android:name="com.example.baseproject.fragments.LibraryFragment"
+        android:label="fragment_library"
+        tools:layout="@layout/fragment_library" />
+</navigation>

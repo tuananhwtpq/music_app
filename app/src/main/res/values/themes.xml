@@ -1,0 +1,86 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.BaseProject" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#0F9D58</item>
+        <item name="colorPrimaryVariant">#0F9D58</item>
+        <item name="colorOnPrimary">#000</item>
+    </style>
+
+    <style name="Theme.BaseProject" parent="Base.Theme.BaseProject">
+        <item name="colorPrimary">#0F9D58</item>
+        <item name="colorPrimaryVariant">#0F9D58</item>
+        <item name="colorOnPrimary">#000</item>
+    </style>
+
+    <style name="singleLineTxt">
+        <item name="android:singleLine">true</item>
+        <item name="android:marqueeRepeatLimit">marquee_forever</item>
+        <item name="android:ellipsize">marquee</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="mHeading" parent="singleLineTxt" />
+
+    <style name="mHeading.H1" parent="mHeading">
+        <item name="android:fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="mHeading.H2" parent="mHeading">
+        <item name="android:fontFamily">@font/nunito_sans_semi_bold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="mHeading.H3" parent="mHeading">
+        <item name="android:fontFamily">@font/nunito_sans_semi_bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="mHeading.H4" parent="mHeading">
+        <item name="android:fontFamily">@font/nunito_sans_semi_bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="mTxt">
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="mTxt.P1" parent="mTxt">
+        <item name="fontFamily">@font/nunito_sans_medium</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="mTxt.P2" parent="mTxt">
+        <item name="fontFamily">@font/nunito_sans_medium</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="mMeta" parent="singleLineTxt" />
+
+    <style name="mMeta.m1M" parent="mMeta">
+        <item name="fontFamily">@font/nunito_sans_medium</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="mMeta.m1" parent="mMeta">
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="mMeta.m2" parent="mMeta">
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="mBtn" parent="singleLineTxt" />
+
+    <style name="mBtn.a1" parent="mMeta">
+        <item name="fontFamily">@font/nunito_sans_semi_bold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="mBtn.a2" parent="mMeta">
+        <item name="fontFamily">@font/nunito_sans_semi_bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+</resources>

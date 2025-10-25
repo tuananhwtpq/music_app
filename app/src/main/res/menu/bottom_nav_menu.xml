@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/songsFragment"
+        android:icon="@drawable/outline_ad_24"
+        android:title="Songs" />
+
+    <item
+        android:id="@+id/playlistsFragment"
+        android:icon="@drawable/outline_ad_24"
+        android:title="Playlist" />
+
+    <item
+        android:id="@+id/placeholder"
+        android:title="" />
+
+    <item
+        android:id="@+id/libraryFragment"
+        android:icon="@drawable/outline_ad_24"
+        android:title="Library" />
+
+    <item
+        android:id="@+id/foldersFragment"
+        android:icon="@drawable/outline_ad_24"
+        android:title="Folders" />
+
+</menu>
