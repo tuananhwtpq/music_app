@@ -9,60 +9,49 @@
     tools:context=".activities.MainActivity"
     tools:openDrawer="start">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/main_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
         <include
             android:id="@+id/tool_bar"
             layout="@layout/custom_tool_bar" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/main_container_view"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/main_view_pager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            app:layout_constraintBottom_toTopOf="@id/current_track_bar"
+            app:layout_constraintTop_toBottomOf="@id/tool_bar" />
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/coordinator_layout"
+        <include
+            android:id="@+id/current_track_bar"
+            layout="@layout/view_current_track_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom">
+            app:layout_constraintBottom_toTopOf="@id/main_tabs_holder"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab_main"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/visualizer"
-                app:layout_anchor="@id/bottom_app_bar"
-                app:srcCompat="@drawable/outline_ad_24"
-                app:tint="@color/white" />
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/main_tabs_holder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:tabIconTint="@color/tab_icon_selector"
+            app:tabIndicator="@null"
+            app:tabMinWidth="150dp"
+            app:tabMode="fixed"
+            app:tabRippleColor="@null"
+            app:tabSelectedTextColor="@color/tab_icon_selector"
+            app:tabTextAppearance="@style/MyCustomTabText"
+            app:tabTextColor="@color/tab_icon_selector" />
 
-            <com.google.android.material.bottomappbar.BottomAppBar
-                android:id="@+id/bottom_app_bar"
-                style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                app:fabAlignmentMode="center">
-
-                <com.google.android.material.bottomnavigation.BottomNavigationView
-                    android:id="@+id/bottom_nav_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    app:itemIconTint="@color/bottom_nav_color"
-                    app:itemTextColor="@color/bottom_nav_color"
-                    app:menu="@menu/bottom_nav_menu" />
-
-            </com.google.android.material.bottomappbar.BottomAppBar>
-
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation_view"

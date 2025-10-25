@@ -43,7 +43,7 @@ android {
 //        jvmTarget = "17"
 //    }
 
-    kotlin.compilerOptions{
+    kotlin.compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }
 
@@ -82,7 +82,12 @@ dependencies {
     implementation(libs.gson)
 
     //navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    //room
+    implementation(libs.androidx.room.runtime)
+    //ksp
+    implementation(libs.androidx.room.ktx)
 
 }

@@ -14,9 +14,12 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
+import androidx.viewpager2.widget.ViewPager2
 import com.example.baseproject.R
+import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivityMainBinding
+import com.google.android.material.tabs.TabLayoutMediator
 import java.security.Permissions
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
@@ -26,8 +29,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
     private lateinit var toggle: ActionBarDrawerToggle
-//    private lateinit var navHostFragment: NavHostFragment
-//    private lateinit var navController: NavController
+    private var mAdapter: MainViewPagerAdapter? = null
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -40,61 +42,60 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
 
     override fun initData() {
+        mAdapter = MainViewPagerAdapter(this)
 
     }
 
     override fun initView() {
         Log.d("Test", "MainActivity")
+        binding.mainViewPager.adapter = mAdapter
 
-        //setupController()
-        //setupDestination(navController)
-        //setupNavigation()
+        setupTabLayout()
+        showPermissionRequest()
         setupDrawerLayout()
         setupItemToolBar()
-        handleBottomNavView()
-        handleItemBottomNavClicked()
-        showPermissionRequest()
 
-        //NavigationUI.setupWithNavController(binding.bottomNavView, navController)
-
-    }
-
-    private fun setupNavigation() {
-
-        binding.bottomNavView.selectedItemId = R.id.songsFragment
-        binding.bottomNavView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.songsFragment -> {
-                    if (this != MainActivity) {
-                        val intent = Intent(this, SongsActivity::class.java)
-                        intent.flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        startActivity(intent)
-                        finish()
-                    }
-                    true
-                }
-
-                R.id.playlistsFragment -> {
-                    val intent = Intent(this, PlaylistsActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    startActivity(intent)
-                    finish()
-                    true
-                }
-
-
-                else -> false
+        val onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
             }
         }
 
+        binding.mainViewPager.registerOnPageChangeCallback(onPageChangeCallback)
+
     }
 
-//    private fun setupController() {
-//        navHostFragment =
-//            supportFragmentManager.findFragmentById(R.id.main_container_view) as NavHostFragment
-//        navController = navHostFragment.navController
-//    }
+    private fun setupTabLayout() {
+        TabLayoutMediator(binding.mainTabsHolder, binding.mainViewPager) { tab, position ->
+            when (position) {
+                0 -> {
+                    tab.text = "Songs"
+                    tab.setIcon(R.drawable.outline_ad_24)
+                }
+
+                1 -> {
+                    tab.text = "Playlists"
+                    tab.setIcon(R.drawable.outline_ad_24)
+                }
+
+                2 -> {
+                    tab.text = "Placeholders"
+                    tab.setIcon(R.drawable.outline_ad_24)
+                }
+
+                3 -> {
+                    tab.text = "Library"
+                    tab.setIcon(R.drawable.outline_ad_24)
+                }
+
+                4 -> {
+                    tab.text = "Folders"
+                    tab.setIcon(R.drawable.outline_ad_24)
+                }
+            }
+        }.attach()
+    }
+
 
     private fun showPermissionRequest() {
         AlertDialog.Builder(this)
@@ -105,40 +106,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             }
             .setNegativeButton("Later", null)
             .show()
-    }
-
-    private fun setupDestination(navController: NavController) {
-
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.splashFragment,
-                R.id.introActivity -> {
-                    binding.toolBar.toolBarMain.visibility = View.GONE
-                    binding.coordinatorLayout.visibility = View.GONE
-                }
-
-                R.id.songsFragment,
-                R.id.playlistsFragment,
-                R.id.libraryFragment,
-                R.id.foldersFragment -> {
-                    binding.toolBar.toolBarMain.visibility = View.VISIBLE
-                    binding.coordinatorLayout.visibility = View.VISIBLE
-                }
-
-                else -> {
-                    binding.toolBar.toolBarMain.visibility = View.GONE
-                    binding.coordinatorLayout.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun handleItemBottomNavClicked() {
-    }
-
-    private fun handleBottomNavView() {
-        binding.bottomNavView.background = null
-        binding.bottomNavView.menu.getItem(2).isEnabled = false
     }
 
     private fun setupItemToolBar() {

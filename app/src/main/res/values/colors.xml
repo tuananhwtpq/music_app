@@ -10,5 +10,6 @@
     <color name="colorError">#F24B4C</color>
     <color name="colorBackground">#FAF8F4</color>
     <color name="gray">#CADBE9</color>
+    <color name="green">#88EB15</color>
 
 </resources>

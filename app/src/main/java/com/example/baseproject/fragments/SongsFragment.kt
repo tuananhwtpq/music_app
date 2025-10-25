@@ -10,6 +10,7 @@ import com.example.baseproject.bases.BaseFragment
 import com.example.baseproject.databinding.FragmentSongsBinding
 
 class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::inflate) {
+
     override fun initData() {
 
     }
