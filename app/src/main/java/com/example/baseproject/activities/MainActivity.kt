@@ -1,6 +1,7 @@
 package com.example.baseproject.activities
 
 import android.Manifest
+import android.content.Intent
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -25,8 +26,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
     private lateinit var toggle: ActionBarDrawerToggle
-    private lateinit var navHostFragment: NavHostFragment
-    private lateinit var navController: NavController
+//    private lateinit var navHostFragment: NavHostFragment
+//    private lateinit var navController: NavController
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -45,23 +46,55 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun initView() {
         Log.d("Test", "MainActivity")
 
-        setupController()
-        setupDestination(navController)
+        //setupController()
+        //setupDestination(navController)
+        //setupNavigation()
         setupDrawerLayout()
         setupItemToolBar()
         handleBottomNavView()
         handleItemBottomNavClicked()
         showPermissionRequest()
 
-        NavigationUI.setupWithNavController(binding.bottomNavView, navController)
+        //NavigationUI.setupWithNavController(binding.bottomNavView, navController)
 
     }
 
-    private fun setupController() {
-        navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.main_container_view) as NavHostFragment
-        navController = navHostFragment.navController
+    private fun setupNavigation() {
+
+        binding.bottomNavView.selectedItemId = R.id.songsFragment
+        binding.bottomNavView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.songsFragment -> {
+                    if (this != MainActivity) {
+                        val intent = Intent(this, SongsActivity::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        startActivity(intent)
+                        finish()
+                    }
+                    true
+                }
+
+                R.id.playlistsFragment -> {
+                    val intent = Intent(this, PlaylistsActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    startActivity(intent)
+                    finish()
+                    true
+                }
+
+
+                else -> false
+            }
+        }
+
     }
+
+//    private fun setupController() {
+//        navHostFragment =
+//            supportFragmentManager.findFragmentById(R.id.main_container_view) as NavHostFragment
+//        navController = navHostFragment.navController
+//    }
 
     private fun showPermissionRequest() {
         AlertDialog.Builder(this)

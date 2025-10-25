@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.SongsFragment">
+    android:fitsSystemWindows="true"
+    tools:context=".activities.SongsActivity">
 
     <LinearLayout
         android:id="@+id/layout_two_button"
@@ -88,8 +89,8 @@
             android:layout_height="wrap_content"
             android:drawablePadding="4dp"
             android:gravity="center"
-            android:text="Time Added"
-            app:drawableStartCompat="@drawable/outline_ad_24" />
+            app:drawableStartCompat="@drawable/outline_ad_24"
+            tools:text="Time Added" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
