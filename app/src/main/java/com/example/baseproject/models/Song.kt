@@ -1,7 +1,11 @@
 package com.example.baseproject.models
 
 import android.net.Uri
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
+
+@Parcelize
 data class Song(
     val id: Long,
     val title: String,
@@ -11,4 +15,4 @@ data class Song(
     val duration: Long,
     val uri: Uri,
     val albumArtUri: Uri?
-)
+) : Parcelable

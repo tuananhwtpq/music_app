@@ -13,7 +13,9 @@ import com.example.baseproject.R
 import com.example.baseproject.adapters.SongAdapter
 import com.example.baseproject.bases.BaseFragment
 import com.example.baseproject.databinding.FragmentSongsBinding
+import com.example.baseproject.models.Song
 import com.example.baseproject.viewmodel.SongViewModel
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::inflate) {
 
@@ -33,12 +35,25 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
         songAdapter = SongAdapter { song ->
             Log.d(TAG, "Click item: ${song.title}")
+            showPlayerBottomSheet(song)
         }
 
         binding.rvListSongs.apply {
             adapter = songAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+    }
+
+    private fun showPlayerBottomSheet(song: Song) {
+
+        val existingSheet =
+            parentFragmentManager.findFragmentByTag(PlayerBottomSheetDialogFragment.TAG)
+        if (existingSheet != null) {
+            (existingSheet as? BottomSheetDialogFragment)?.dismiss()
+        }
+        val playerBottomSheet = PlayerBottomSheetDialogFragment.newInstance(song)
+
+        playerBottomSheet.show(parentFragmentManager, PlayerBottomSheetDialogFragment.TAG)
     }
 
     override fun initActionView() {

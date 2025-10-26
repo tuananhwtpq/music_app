@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id ("kotlin-parcelize")
 }
 
 android {
@@ -89,5 +90,11 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     //ksp
     implementation(libs.androidx.room.ktx)
+
+    //exo player
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.ui.compose)
 
 }
