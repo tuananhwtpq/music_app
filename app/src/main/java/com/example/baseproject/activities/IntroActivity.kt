@@ -1,11 +1,15 @@
 package com.example.baseproject.activities
 
+import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.window.OnBackInvokedCallback
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.registerForActivityResult
 import androidx.annotation.RequiresApi
 import androidx.viewpager2.widget.ViewPager2
 import com.example.baseproject.adapters.IntroViewPagerAdapter
@@ -26,6 +30,15 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>(ActivityIntroBinding::i
         }
     }
 
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                goToHome()
+            } else {
+                showPermissionRequest()
+            }
+        }
+
     override fun initData() {
         mAdapter = IntroViewPagerAdapter(this)
     }
@@ -45,7 +58,13 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>(ActivityIntroBinding::i
                 }
 
                 2 -> {
-                    goToHome()
+
+                    val permisstion = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        Manifest.permission.READ_MEDIA_AUDIO
+                    } else {
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    }
+                    requestPermissionLauncher.launch(permisstion)
                 }
             }
         }
@@ -58,6 +77,25 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>(ActivityIntroBinding::i
             }
         binding.vpIntro.registerOnPageChangeCallback(onPageChangeCallback)
         binding.dotIndicator.attachTo(binding.vpIntro)
+
+    }
+
+    private fun showPermissionRequest() {
+
+        AlertDialog.Builder(this)
+            .setTitle("This app need this permission")
+            .setMessage("this app need this permission")
+            .setPositiveButton("OK") { _, _ ->
+                val permissionToRequest =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        Manifest.permission.READ_MEDIA_AUDIO
+                    } else {
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    }
+                requestPermissionLauncher.launch(permissionToRequest)
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
 
     }
 

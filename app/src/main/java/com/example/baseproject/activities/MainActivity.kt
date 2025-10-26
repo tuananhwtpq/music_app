@@ -2,12 +2,15 @@ package com.example.baseproject.activities
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModel
@@ -34,10 +37,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                //showPermissionRequest()
                 Log.d(TAG, "Permission granted")
             } else {
-                //showPermissionRequest()
+                showPermissionRequest()
             }
         }
 
@@ -51,7 +53,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         binding.mainViewPager.adapter = mAdapter
 
         setupTabLayout()
-        showPermissionRequest()
+        handleRequestPermission()
         setupDrawerLayout()
         setupItemToolBar()
 
@@ -63,6 +65,49 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
         binding.mainViewPager.registerOnPageChangeCallback(onPageChangeCallback)
 
+    }
+
+    private fun handleRequestPermission() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permission = Manifest.permission.POST_NOTIFICATIONS
+
+            when {
+                //permission granted
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d(TAG, "Permission granted")
+                }
+
+                //the second time user denied permission
+                shouldShowRequestPermissionRationale(permission) -> {
+                    Log.d(TAG, "Showing rationale for notification permission")
+                    showPermissionRequest()
+                }
+                //the first time user access app
+                else -> {
+                    requestPermissionLauncher.launch(permission)
+                }
+            }
+
+        } else {
+            Log.d(TAG, "Not API 33 -> Permission auto granted")
+        }
+    }
+
+    private fun showPermissionRequest() {
+        AlertDialog.Builder(this)
+            .setTitle("Notification permission")
+            .setMessage("We need notification permission to show media controller on notification when you play music")
+            .setPositiveButton("OK") { _, _ ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+            .setNegativeButton("Later", null)
+            .show()
     }
 
     private fun setupTabLayout() {
@@ -96,17 +141,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }.attach()
     }
 
-
-    private fun showPermissionRequest() {
-        AlertDialog.Builder(this)
-            .setTitle("Notification permission")
-            .setMessage("We need notification permission to show media controller on notification when you play music")
-            .setPositiveButton("OK") { _, _ ->
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            .setNegativeButton("Later", null)
-            .show()
-    }
 
     private fun setupItemToolBar() {
 
