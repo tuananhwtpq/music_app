@@ -29,7 +29,9 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
         songAdapter = SongAdapter { song ->
             Log.d(TAG, "Click item: ${song.title}")
-            sharedViewModel.selectSong(song)
+            if (sharedViewModel.currentSongPlaying.value != song) {
+                sharedViewModel.selectSong(song)
+            }
             sharedViewModel.setPlayerSheetVisibility(true)
 
         }

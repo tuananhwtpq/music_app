@@ -70,44 +70,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-    //region MINI PLAYER VISIBILITY
-    private fun updateMiniPlayerVisibility(playbackState: Int, isSheetVisible: Boolean) {
-
-        if (isSheetVisible) {
-            binding.miniPlayer.root.visibility = View.GONE
-            return
-        }
-
-        val isVisible =
-            (playbackState == Player.STATE_READY ||
-                    playbackState == Player.STATE_BUFFERING ||
-                    mediaController?.isPlaying == true)
-
-        binding.miniPlayer.root.visibility = if (isVisible) View.VISIBLE else View.GONE
-    }
-
-    //region MINI PLAYER PAUSE PLAY
-    private fun updateMiniPlayerPlayPause(isPlaying: Boolean) {
-        val iconRes = if (isPlaying) {
-            R.drawable.pau_btn_2
-        } else {
-            R.drawable.play_btn_2
-        }
-
-        binding.miniPlayer.playPauseBtn.setImageResource(iconRes)
-
-    }
-
-    //region MINI PLAYER DATA
-    private fun updateMiniPlayerMetadata(mediaMetadata: MediaMetadata) {
-        binding.miniPlayer.tvSongName.text = mediaMetadata.title ?: "Unknown Song"
-
-        Glide.with(this)
-            .load(mediaMetadata.artworkUri)
-            .placeholder(R.drawable.download)
-            .into(binding.miniPlayer.ivCurrent)
-    }
-
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -169,6 +131,72 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
             }, MoreExecutors.directExecutor()
         )
+    }
+
+    //region OBSERVED DATA
+    private fun observedSharedViewModel() {
+        Log.d(TAG, "Observed shared viewmodel is running")
+
+        sharedViewModel.currentSongPlaying.observe(this) { selectedSong ->
+            if (selectedSong == null) return@observe
+
+
+            val currentMediaId = mediaController?.currentMediaItem?.mediaId
+            Log.d(TAG, "Current media id: ${currentMediaId.toString()}")
+
+            val newSongUriString = selectedSong.uri.toString()
+            Log.d(TAG, "New song Uri String: $newSongUriString")
+
+
+            if (newSongUriString != currentMediaId) {
+                Log.d(TAG, "new song selected")
+
+                val mediaItem = MediaItem.Builder()
+                    .setUri(selectedSong.uri)
+                    .setMediaId(newSongUriString)
+                    .setMediaMetadata(buildMetadataFromSong(selectedSong))
+                    .build()
+
+                mediaController?.setMediaItem(mediaItem)
+                mediaController?.prepare()
+                mediaController?.play()
+
+            } else {
+                Log.d(TAG, "This is a Song")
+            }
+        }
+
+        sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
+
+            val existingSheet = supportFragmentManager.findFragmentByTag(
+                PlayerBottomSheetDialogFragment.TAG
+            )
+
+            if (isVisible) {
+                if (existingSheet == null) {
+                    val playerSheet = PlayerBottomSheetDialogFragment.newInstance()
+                    playerSheet.show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
+                }
+            } else {
+                (existingSheet as? BottomSheetDialogFragment)?.dismiss()
+            }
+
+            updateMiniPlayerVisibility(
+                mediaController?.playbackState ?: Player.STATE_IDLE,
+                isVisible
+            )
+
+        }
+    }
+
+    private fun buildMetadataFromSong(song: Song): MediaMetadata {
+        return MediaMetadata.Builder()
+            .setTitle(song.title)
+            .setArtist(song.artist)
+            .setAlbumTitle(song.album)
+            .setArtworkUri(song.albumArtUri)
+            .build()
+
     }
 
     //region UPDATE UI CONTROLLER
@@ -310,6 +338,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
 
+    //region MINI PLAYER VISIBILITY
+    private fun updateMiniPlayerVisibility(playbackState: Int, isSheetVisible: Boolean) {
+
+        if (isSheetVisible) {
+            binding.miniPlayer.root.visibility = View.GONE
+            return
+        }
+
+        val isVisible =
+            (playbackState == Player.STATE_READY ||
+                    playbackState == Player.STATE_BUFFERING ||
+                    mediaController?.isPlaying == true)
+
+        binding.miniPlayer.root.visibility = if (isVisible) View.VISIBLE else View.GONE
+    }
+
+    //region MINI PLAYER PAUSE PLAY
+    private fun updateMiniPlayerPlayPause(isPlaying: Boolean) {
+        val iconRes = if (isPlaying) {
+            R.drawable.pau_btn_2
+        } else {
+            R.drawable.play_btn_2
+        }
+
+        binding.miniPlayer.playPauseBtn.setImageResource(iconRes)
+
+    }
+
+    //region MINI PLAYER DATA
+    private fun updateMiniPlayerMetadata(mediaMetadata: MediaMetadata) {
+        binding.miniPlayer.tvSongName.text = mediaMetadata.title ?: "Unknown Song"
+
+        Glide.with(this)
+            .load(mediaMetadata.artworkUri)
+            .placeholder(R.drawable.download)
+            .into(binding.miniPlayer.ivCurrent)
+    }
+
+
+
     //region INIT ACTION VIEW
     override fun initActionView() {
         observedSharedViewModel()
@@ -329,72 +397,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             sharedViewModel.setPlayerSheetVisibility(true)
             Log.d(TAG, "Mini player is onclicked")
         }
-    }
-
-    //region OBSERVED DATA
-    private fun observedSharedViewModel() {
-        Log.d(TAG, "Observed shared viewmodel is running")
-
-        sharedViewModel.currentSongPlaying.observe(this) { selectedSong ->
-            if (selectedSong == null) return@observe
-
-
-            val currentMediaId = mediaController?.currentMediaItem?.mediaId
-            Log.d(TAG, "Current media id: ${currentMediaId.toString()}")
-
-            val newSongUriString = selectedSong.uri.toString()
-            Log.d(TAG, "New song Uri String: $newSongUriString")
-
-
-            if (newSongUriString != currentMediaId) {
-                Log.d(TAG, "new song selected")
-
-                val mediaItem = MediaItem.Builder()
-                    .setUri(selectedSong.uri)
-                    .setMediaId(newSongUriString)
-                    .setMediaMetadata(buildMetadataFromSong(selectedSong))
-                    .build()
-
-                mediaController?.setMediaItem(mediaItem)
-                mediaController?.prepare()
-                mediaController?.play()
-
-            } else {
-                Log.d(TAG, "This is a Song")
-            }
-        }
-
-        sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
-
-            val existingSheet = supportFragmentManager.findFragmentByTag(
-                PlayerBottomSheetDialogFragment.TAG
-            )
-
-            if (isVisible) {
-                if (existingSheet == null) {
-                    val playerSheet = PlayerBottomSheetDialogFragment.newInstance()
-                    playerSheet.show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
-                }
-            } else {
-                (existingSheet as? BottomSheetDialogFragment)?.dismiss()
-            }
-
-            updateMiniPlayerVisibility(
-                mediaController?.playbackState ?: Player.STATE_IDLE,
-                isVisible
-            )
-
-        }
-    }
-
-    private fun buildMetadataFromSong(song: Song): MediaMetadata {
-        return MediaMetadata.Builder()
-            .setTitle(song.title)
-            .setArtist(song.artist)
-            .setAlbumTitle(song.album)
-            .setArtworkUri(song.albumArtUri)
-            .build()
-
     }
 
     override fun onStop() {
