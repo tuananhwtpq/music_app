@@ -1,17 +1,25 @@
 package com.example.baseproject.fragments
 
+import android.content.ComponentName
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import com.example.baseproject.R
 import com.example.baseproject.databinding.FragmentPlayerBottomSheetDialogBinding
 import com.example.baseproject.models.Song
+import com.example.baseproject.service.MyPlaybackService
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 
 class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
@@ -33,7 +41,8 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     private val binding
         get() = _binding!!
 
-    private var exoPlayer: ExoPlayer? = null
+    private var mediaController: MediaController? = null
+    private lateinit var controllerFeature: ListenableFuture<MediaController>
     private var songToPlay: Song? = null
 
 
@@ -60,40 +69,53 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initPLayer()
+        initController()
         binding.tvSongTitle.text = songToPlay?.title ?: "Unknown Song"
     }
 
     private fun initPLayer() {
-        exoPlayer = ExoPlayer.Builder(requireContext()).build()
-        binding.playerView.player = exoPlayer
+
+        val serviceIntent = Intent(requireContext(), MyPlaybackService::class.java)
+        requireContext().startService(serviceIntent)
+    }
+
+    private fun initController() {
+        val sessionToken = SessionToken(
+            requireContext(), ComponentName(
+                requireContext(),
+                MyPlaybackService::class.java
+            )
+        )
+
+        controllerFeature = MediaController.Builder(requireContext(), sessionToken).buildAsync()
+        controllerFeature.addListener({
+            mediaController = controllerFeature.get()
+
+            binding.playerView.player = mediaController
+
+            playNewSong()
+        }, MoreExecutors.directExecutor())
+    }
+
+    private fun playNewSong() {
 
         songToPlay?.let { song ->
             val mediaItem = MediaItem.fromUri(song.uri)
-
-            exoPlayer?.setMediaItem(mediaItem)
-
-            exoPlayer?.prepare()
-            exoPlayer?.play()
+            mediaController?.setMediaItem(mediaItem)
+            mediaController?.prepare()
+            mediaController?.play()
         }
+
     }
 
     override fun onStop() {
         super.onStop()
-        releasePlayer()
+        MediaController.releaseFuture(controllerFeature)
     }
 
-    private fun releasePlayer() {
-        exoPlayer?.let { player ->
-            player.stop()
-            player.release()
-        }
-
-        exoPlayer = null
+    override fun onDestroyView() {
+        super.onDestroyView()
         binding.playerView.player = null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         _binding = null
     }
 
