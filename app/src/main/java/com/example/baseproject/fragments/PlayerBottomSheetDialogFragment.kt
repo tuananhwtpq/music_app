@@ -56,7 +56,7 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun observedSharedViewModel() {
-        sharedViewModel.setPlayerSheetVisibility(true)
+        //sharedViewModel.setPlayerSheetVisibility(true)
         sharedViewModel.isPlayerSheetVisible.observe(viewLifecycleOwner) { isVisible ->
             if (!isVisible) {
                 dismiss()

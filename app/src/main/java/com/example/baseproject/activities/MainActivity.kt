@@ -189,6 +189,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
+    private fun handleItemClicked() {
+        binding.miniPlayer.playPauseBtn.setOnClickListener {
+            Log.d(TAG, "Play pause btn is onclicked")
+            if (mediaController?.isPlaying == true) {
+                mediaController?.pause()
+            } else {
+                mediaController?.play()
+            }
+        }
+        binding.miniPlayer.root.setOnClickListener {
+            sharedViewModel.setPlayerSheetVisibility(true)
+            Log.d(TAG, "Mini player is onclicked")
+        }
+    }
+
     private fun buildMetadataFromSong(song: Song): MediaMetadata {
         return MediaMetadata.Builder()
             .setTitle(song.title)
@@ -377,26 +392,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
 
-
     //region INIT ACTION VIEW
     override fun initActionView() {
         observedSharedViewModel()
         handleItemClicked()
-    }
-
-    private fun handleItemClicked() {
-        binding.miniPlayer.playPauseBtn.setOnClickListener {
-            Log.d(TAG, "Play pause btn is onclicked")
-            if (mediaController?.isPlaying == true) {
-                mediaController?.pause()
-            } else {
-                mediaController?.play()
-            }
-        }
-        binding.miniPlayer.root.setOnClickListener {
-            sharedViewModel.setPlayerSheetVisibility(true)
-            Log.d(TAG, "Mini player is onclicked")
-        }
     }
 
     override fun onStop() {

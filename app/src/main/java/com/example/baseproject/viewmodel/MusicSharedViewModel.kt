@@ -20,11 +20,11 @@ class MusicSharedViewModel : ViewModel() {
 
     fun selectSong(song: Song) {
         _currentSongPlaying.postValue(song)
-        Log.d(TAG, "Current song playing: ${_currentSongPlaying.toString()}")
+        Log.d(TAG, "Current song playing: ${_currentSongPlaying.value?.title}")
     }
 
     fun setPlayerSheetVisibility(isVisible: Boolean) {
         _isPlayerSheetVisible.postValue(isVisible)
-        Log.d(TAG, "Is Player sheet visible: $_isPlayerSheetVisible")
+        Log.d(TAG, "Is Player sheet visible: $isVisible")
     }
 }
