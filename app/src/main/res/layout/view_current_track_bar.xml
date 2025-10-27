@@ -28,23 +28,22 @@
         android:gravity="start"
         android:paddingStart="8dp"
         android:paddingEnd="0dp"
-        android:text="This is a playlist song....................."
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/playpauseBtn"
+        app:layout_constraintEnd_toStartOf="@id/play_pause_btn"
         app:layout_constraintStart_toEndOf="@id/iv_current"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="This is a playlist song....................." />
 
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/playpauseBtn"
+    <ImageView
+        android:id="@+id/play_pause_btn"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:contentDescription="Image button"
         android:scaleType="fitCenter"
+        android:src="@drawable/play_btn_2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:lottie_autoPlay="false"
-        app:lottie_loop="false"
-        app:lottie_rawRes="@raw/sandy_loading" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

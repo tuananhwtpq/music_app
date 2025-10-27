@@ -1,19 +1,14 @@
 package com.example.baseproject.fragments
 
-import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.baseproject.R
 import com.example.baseproject.adapters.SongAdapter
 import com.example.baseproject.bases.BaseFragment
 import com.example.baseproject.databinding.FragmentSongsBinding
 import com.example.baseproject.models.Song
+import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.example.baseproject.viewmodel.SongViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -25,6 +20,7 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
     private lateinit var songAdapter: SongAdapter
     private val viewModel: SongViewModel by viewModels()
+    private val sharedViewModel: MusicSharedViewModel by activityViewModels()
 
 
     override fun initData() {
@@ -35,8 +31,12 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
         songAdapter = SongAdapter { song ->
             Log.d(TAG, "Click item: ${song.title}")
-            showPlayerBottomSheet(song)
+            sharedViewModel.selectSong(song)
+            sharedViewModel.setPlayerSheetVisibility(true)
+            //showPlayerBottomSheet(song)
+
         }
+
 
         binding.rvListSongs.apply {
             adapter = songAdapter
@@ -51,7 +51,7 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
         if (existingSheet != null) {
             (existingSheet as? BottomSheetDialogFragment)?.dismiss()
         }
-        val playerBottomSheet = PlayerBottomSheetDialogFragment.newInstance(song)
+        val playerBottomSheet = PlayerBottomSheetDialogFragment.newInstance()
 
         playerBottomSheet.show(parentFragmentManager, PlayerBottomSheetDialogFragment.TAG)
     }

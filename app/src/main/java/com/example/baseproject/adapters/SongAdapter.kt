@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.baseproject.R
 import com.example.baseproject.databinding.SongItemBinding
 import com.example.baseproject.models.Song
 
@@ -20,6 +21,7 @@ class SongAdapter(
             binding.tvSongArtist.text = item.artist
             Glide.with(binding.root.context)
                 .load(item.albumArtUri)
+                .placeholder(R.drawable.download)
                 .into(binding.ivSongImage)
 
             binding.root.setOnClickListener {

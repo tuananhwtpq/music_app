@@ -1,22 +1,20 @@
 package com.example.baseproject.fragments
 
 import android.content.ComponentName
+import android.content.DialogInterface
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.example.baseproject.R
 import com.example.baseproject.databinding.FragmentPlayerBottomSheetDialogBinding
 import com.example.baseproject.models.Song
 import com.example.baseproject.service.MyPlaybackService
+import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -26,14 +24,16 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     companion object {
         const val TAG = "PlayerBottomSheetDialogFragment"
 
-        fun newInstance(song: Song): PlayerBottomSheetDialogFragment {
-            val args = Bundle().apply {
-                putParcelable("SONG_TO_PLAY", song)
-            }
+        fun newInstance(): PlayerBottomSheetDialogFragment {
+//            val args = Bundle().apply {
+//                putParcelable("SONG_TO_PLAY", song)
+//            }
 
-            return PlayerBottomSheetDialogFragment().apply {
-                arguments = args
-            }
+            return PlayerBottomSheetDialogFragment()
+
+//            return PlayerBottomSheetDialogFragment().apply {
+//                arguments = args
+//            }
         }
     }
 
@@ -45,16 +45,19 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     private lateinit var controllerFeature: ListenableFuture<MediaController>
     private var songToPlay: Song? = null
 
+    private val sharedViewModel: MusicSharedViewModel by activityViewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            songToPlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                it.getParcelable("SONG_TO_PLAY", Song::class.java)
-            } else {
-                it.getParcelable("SONG_TO_PLAY")
-            }
-        }
+//        arguments?.let {
+//            songToPlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                it.getParcelable("SONG_TO_PLAY", Song::class.java)
+//            } else {
+//                it.getParcelable("SONG_TO_PLAY")
+//            }
+//        }
+
     }
 
     override fun onCreateView(
@@ -68,9 +71,25 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sharedViewModel.setPlayerSheetVisibility(true)
+        sharedViewModel.isPlayerSheetVisible.observe(viewLifecycleOwner) { isVisible ->
+            if (!isVisible) {
+                dismiss()
+            }
+        }
+
+        sharedViewModel.currentSongPlaying.observe(viewLifecycleOwner) { song ->
+            songToPlay = song
+            binding.tvSongTitle.text = song?.title ?: "Unknown Song"
+        }
+
         initPLayer()
         initController()
-        binding.tvSongTitle.text = songToPlay?.title ?: "Unknown Song"
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        sharedViewModel.setPlayerSheetVisibility(false)
     }
 
     private fun initPLayer() {

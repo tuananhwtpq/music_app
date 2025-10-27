@@ -1,6 +1,7 @@
 package com.example.baseproject.activities
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -8,22 +9,30 @@ import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import com.example.baseproject.R
 import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivityMainBinding
+import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
+import com.example.baseproject.service.MyPlaybackService
+import com.example.baseproject.viewmodel.MusicSharedViewModel
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.tabs.TabLayoutMediator
-import java.security.Permissions
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
 
@@ -33,6 +42,70 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     private lateinit var toggle: ActionBarDrawerToggle
     private var mAdapter: MainViewPagerAdapter? = null
+
+    private var mediaController: MediaController? = null
+    private lateinit var controllerFeature: ListenableFuture<MediaController>
+
+    private val sharedViewModel: MusicSharedViewModel by viewModels()
+
+    //region PLAYER LISTENER
+    private val playerListener = object : Player.Listener {
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            super.onMediaMetadataChanged(mediaMetadata)
+            updateMiniPlayerMetadata(mediaMetadata)
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            super.onIsPlayingChanged(isPlaying)
+            updateMiniPlayerPlayPause(isPlaying)
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
+
+            val isSheetVisible = sharedViewModel.isPlayerSheetVisible.value ?: false
+
+            updateMiniPlayerVisibility(playbackState, isSheetVisible = isSheetVisible)
+        }
+    }
+
+    //region MINI PLAYER VISIBILITY
+    private fun updateMiniPlayerVisibility(playbackState: Int, isSheetVisible: Boolean) {
+
+        if (isSheetVisible) {
+            binding.miniPlayer.root.visibility = View.GONE
+            return
+        }
+
+        val isVisible =
+            (playbackState == Player.STATE_READY ||
+                    playbackState == Player.STATE_BUFFERING ||
+                    mediaController?.isPlaying == true)
+
+        binding.miniPlayer.root.visibility = if (isVisible) View.VISIBLE else View.GONE
+    }
+
+    //region MINI PLAYER PAUSE PLAY
+    private fun updateMiniPlayerPlayPause(isPlaying: Boolean) {
+        val iconRes = if (isPlaying) {
+            R.drawable.pau_btn_2
+        } else {
+            R.drawable.play_btn_2
+        }
+
+        binding.miniPlayer.playPauseBtn.setImageResource(iconRes)
+
+    }
+
+    //region MINI PLAYER DATA
+    private fun updateMiniPlayerMetadata(mediaMetadata: MediaMetadata) {
+        binding.miniPlayer.tvSongName.text = mediaMetadata.title ?: "Unknown Song"
+
+        Glide.with(this)
+            .load(mediaMetadata.artworkUri)
+            .placeholder(R.drawable.download)
+            .into(binding.miniPlayer.ivCurrent)
+    }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -45,9 +118,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun initData() {
         mAdapter = MainViewPagerAdapter(this)
-
     }
 
+    //region INIT VIEW
     override fun initView() {
         Log.d("Test", "MainActivity")
         binding.mainViewPager.adapter = mAdapter
@@ -67,6 +140,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        startingService()
+        initPlayer()
+    }
+
+    private fun startingService() {
+        val serviceIntent = Intent(this, MyPlaybackService::class.java)
+        startService(serviceIntent)
+    }
+
+    //region INIT PLAYER
+    private fun initPlayer() {
+
+        val sessionToken = SessionToken(this, ComponentName(this, MyPlaybackService::class.java))
+
+        controllerFeature = MediaController.Builder(this, sessionToken).buildAsync()
+
+        controllerFeature.addListener(
+            {
+                mediaController = controllerFeature.get()
+
+                mediaController?.addListener(playerListener)
+                updateUiFromController(mediaController)
+
+            }, MoreExecutors.directExecutor()
+        )
+    }
+
+    //region UPDATE UI CONTROLLER
+    private fun updateUiFromController(mediaController: MediaController?) {
+
+        if (mediaController == null) return
+
+        val isSheetVisible = sharedViewModel.isPlayerSheetVisible.value ?: false
+
+        updateMiniPlayerMetadata(mediaController.mediaMetadata)
+        updateMiniPlayerPlayPause(mediaController.isPlaying)
+        updateMiniPlayerVisibility(mediaController.playbackState, isSheetVisible = isSheetVisible)
+
+    }
+
+    //region HANDLE REQUEST PERMISSION
     private fun handleRequestPermission() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -110,6 +227,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             .show()
     }
 
+    //region SETUP TAB LAYOUT
     private fun setupTabLayout() {
         TabLayoutMediator(binding.mainTabsHolder, binding.mainViewPager) { tab, position ->
             when (position) {
@@ -142,6 +260,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
 
+    //region SETUP ITEM TOOL BAR
     private fun setupItemToolBar() {
 
         val btnMenu = binding.toolBar.btnMenu
@@ -156,6 +275,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
+    //region SETUP DRAWER LAYOUT
     private fun setupDrawerLayout() {
 
         toggle = ActionBarDrawerToggle(
@@ -189,8 +309,70 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     }
 
 
+    //region INIT ACTION VIEW
     override fun initActionView() {
 
+        binding.miniPlayer.playPauseBtn.setOnClickListener {
+            if (mediaController?.isPlaying == true) {
+                mediaController?.pause()
+            } else {
+                mediaController?.play()
+            }
+        }
+        observedSharedViewModel()
+
+        binding.miniPlayer.root.setOnClickListener {
+            sharedViewModel.setPlayerSheetVisibility(true)
+        }
+    }
+
+    //region OBSERVED DATA
+    private fun observedSharedViewModel() {
+
+        sharedViewModel.currentSongPlaying.observe(this) { selectedSong ->
+            if (selectedSong == null) return@observe
+
+            val currentMediaId = mediaController?.currentMediaItem?.mediaId
+
+            val newSongUriString = selectedSong.uri.toString()
+
+            if (newSongUriString != currentMediaId) {
+
+                mediaController?.setMediaItem(MediaItem.fromUri(newSongUriString))
+                mediaController?.prepare()
+                mediaController?.play()
+
+            }
+        }
+
+        sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
+
+            val existingSheet = supportFragmentManager.findFragmentByTag(
+                PlayerBottomSheetDialogFragment.TAG
+            )
+
+            if (isVisible) {
+                if (existingSheet == null) {
+                    val playerSheet = PlayerBottomSheetDialogFragment.newInstance()
+                    playerSheet.show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
+                }
+            } else {
+                (existingSheet as? BottomSheetDialogFragment)?.dismiss()
+            }
+
+            updateMiniPlayerVisibility(
+                mediaController?.playbackState ?: Player.STATE_IDLE,
+                isVisible
+            )
+
+        }
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mediaController?.removeListener(playerListener)
+        MediaController.releaseFuture(controllerFeature)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
