@@ -30,7 +30,6 @@ import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
 import com.example.baseproject.models.Song
 import com.example.baseproject.service.MyPlaybackService
 import com.example.baseproject.viewmodel.MusicSharedViewModel
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -170,15 +169,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
             val existingSheet = supportFragmentManager.findFragmentByTag(
                 PlayerBottomSheetDialogFragment.TAG
-            )
+            ) as? PlayerBottomSheetDialogFragment
+
 
             if (isVisible) {
-                if (existingSheet == null) {
-                    val playerSheet = PlayerBottomSheetDialogFragment.newInstance()
-                    playerSheet.show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
+                if (existingSheet?.dialog?.isShowing == true) {
+                    return@observe
                 }
+
+                if (existingSheet != null) {
+                    existingSheet.dialog?.show()
+                } else {
+                    PlayerBottomSheetDialogFragment.newInstance()
+                        .show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
+                }
+
             } else {
-                (existingSheet as? BottomSheetDialogFragment)?.dismiss()
+                existingSheet?.dismiss()
             }
 
             updateMiniPlayerVisibility(

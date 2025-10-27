@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,6 +40,11 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     private val sharedViewModel: MusicSharedViewModel by activityViewModels()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setRetainInstance(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,6 +55,10 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        savedInstanceState?.let {
+            songToPlay = it.getParcelable("SONG_TO_PLAY")
+        }
 
         initPLayer()
         initController()
@@ -64,14 +74,32 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
         }
 
         sharedViewModel.currentSongPlaying.observe(viewLifecycleOwner) { song ->
-            songToPlay = song
-            binding.tvSongTitle.text = song?.title ?: "Unknown Song"
+            if (songToPlay != song) {
+                songToPlay = song
+                playNewSong()
+                binding.tvSongTitle.text = song?.title ?: "Unknown Song"
+                Log.d(TAG, "New song to play: ${song?.title}")
+            } else {
+                Log.d(TAG, "song is the same")
+            }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable("SONG_TO_PLAY", songToPlay)
     }
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         sharedViewModel.setPlayerSheetVisibility(false)
+    }
+
+    override fun dismiss() {
+        super.dismiss()
+        if (dialog?.isShowing == true) {
+            dialog?.hide()
+        }
     }
 
     private fun initPLayer() {
