@@ -27,6 +27,7 @@ import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivityMainBinding
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
+import com.example.baseproject.models.Song
 import com.example.baseproject.service.MyPlaybackService
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -311,37 +312,55 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     //region INIT ACTION VIEW
     override fun initActionView() {
+        observedSharedViewModel()
+        handleItemClicked()
+    }
 
+    private fun handleItemClicked() {
         binding.miniPlayer.playPauseBtn.setOnClickListener {
+            Log.d(TAG, "Play pause btn is onclicked")
             if (mediaController?.isPlaying == true) {
                 mediaController?.pause()
             } else {
                 mediaController?.play()
             }
         }
-        observedSharedViewModel()
-
         binding.miniPlayer.root.setOnClickListener {
             sharedViewModel.setPlayerSheetVisibility(true)
+            Log.d(TAG, "Mini player is onclicked")
         }
     }
 
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
+        Log.d(TAG, "Observed shared viewmodel is running")
 
         sharedViewModel.currentSongPlaying.observe(this) { selectedSong ->
             if (selectedSong == null) return@observe
 
+
             val currentMediaId = mediaController?.currentMediaItem?.mediaId
+            Log.d(TAG, "Current media id: ${currentMediaId.toString()}")
 
             val newSongUriString = selectedSong.uri.toString()
+            Log.d(TAG, "New song Uri String: $newSongUriString")
+
 
             if (newSongUriString != currentMediaId) {
+                Log.d(TAG, "new song selected")
 
-                mediaController?.setMediaItem(MediaItem.fromUri(newSongUriString))
+                val mediaItem = MediaItem.Builder()
+                    .setUri(selectedSong.uri)
+                    .setMediaId(newSongUriString)
+                    .setMediaMetadata(buildMetadataFromSong(selectedSong))
+                    .build()
+
+                mediaController?.setMediaItem(mediaItem)
                 mediaController?.prepare()
                 mediaController?.play()
 
+            } else {
+                Log.d(TAG, "This is a Song")
             }
         }
 
@@ -366,6 +385,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             )
 
         }
+    }
+
+    private fun buildMetadataFromSong(song: Song): MediaMetadata {
+        return MediaMetadata.Builder()
+            .setTitle(song.title)
+            .setArtist(song.artist)
+            .setAlbumTitle(song.album)
+            .setArtworkUri(song.albumArtUri)
+            .build()
 
     }
 

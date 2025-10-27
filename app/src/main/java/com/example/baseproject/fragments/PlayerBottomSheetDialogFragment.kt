@@ -25,15 +25,7 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
         const val TAG = "PlayerBottomSheetDialogFragment"
 
         fun newInstance(): PlayerBottomSheetDialogFragment {
-//            val args = Bundle().apply {
-//                putParcelable("SONG_TO_PLAY", song)
-//            }
-
             return PlayerBottomSheetDialogFragment()
-
-//            return PlayerBottomSheetDialogFragment().apply {
-//                arguments = args
-//            }
         }
     }
 
@@ -47,19 +39,6 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     private val sharedViewModel: MusicSharedViewModel by activityViewModels()
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-//        arguments?.let {
-//            songToPlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//                it.getParcelable("SONG_TO_PLAY", Song::class.java)
-//            } else {
-//                it.getParcelable("SONG_TO_PLAY")
-//            }
-//        }
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -71,6 +50,12 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initPLayer()
+        initController()
+        observedSharedViewModel()
+    }
+
+    private fun observedSharedViewModel() {
         sharedViewModel.setPlayerSheetVisibility(true)
         sharedViewModel.isPlayerSheetVisible.observe(viewLifecycleOwner) { isVisible ->
             if (!isVisible) {
@@ -82,9 +67,6 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
             songToPlay = song
             binding.tvSongTitle.text = song?.title ?: "Unknown Song"
         }
-
-        initPLayer()
-        initController()
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -117,14 +99,12 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun playNewSong() {
-
         songToPlay?.let { song ->
             val mediaItem = MediaItem.fromUri(song.uri)
             mediaController?.setMediaItem(mediaItem)
             mediaController?.prepare()
             mediaController?.play()
         }
-
     }
 
     override fun onStop() {
