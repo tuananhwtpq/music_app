@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-parcelize")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -43,7 +45,7 @@ android {
 //        jvmTarget = "17"
 //    }
 
-    kotlin.compilerOptions{
+    kotlin.compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }
 
@@ -82,7 +84,22 @@ dependencies {
     implementation(libs.gson)
 
     //navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    //room
+    implementation(libs.androidx.room.runtime)
+    //ksp
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    //exo player
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.ui.compose)
+
+    //media session service
+    implementation(libs.androidx.media3.session)
 
 }

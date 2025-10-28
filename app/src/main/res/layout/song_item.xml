@@ -4,10 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="4dp"
     android:layout_margin="4dp"
-    tools:background="@color/gray">
+    android:background="@color/gray"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="4dp">
 
     <ImageView
         android:id="@+id/iv_song_image"
@@ -15,6 +16,7 @@
         android:layout_height="50dp"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/image_song_bg"
+        android:clipToOutline="true"
         android:contentDescription="Song_image"
         android:scaleType="centerCrop"
         app:srcCompat="@drawable/download" />
@@ -32,6 +34,8 @@
             android:id="@+id/tv_song_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="18sp"
             tools:text="Over the Horizon" />
@@ -40,6 +44,8 @@
             android:id="@+id/tv_song_artist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="14sp"
             tools:text="unknown" />
@@ -54,16 +60,19 @@
 
         <ImageView
             android:id="@+id/btn_favorite"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
             android:contentDescription="button favorite"
+            android:padding="8dp"
             app:srcCompat="@drawable/outline_ad_24" />
 
         <ImageView
             android:id="@+id/btn_more"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:contentDescription="button More info"
+            android:padding="8dp"
             app:srcCompat="@drawable/outline_ad_24" />
     </LinearLayout>
 </LinearLayout>

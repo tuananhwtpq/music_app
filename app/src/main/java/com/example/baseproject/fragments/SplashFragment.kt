@@ -1,23 +1,15 @@
 package com.example.baseproject.fragments
 
-import android.content.Intent
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.navigation.fragment.findNavController
 import com.example.baseproject.R
-import com.example.baseproject.activities.LanguageActivity
 import com.example.baseproject.bases.BaseFragment
 import com.example.baseproject.databinding.FragmentSplashBinding
-import com.example.baseproject.utils.Constants
-import com.example.baseproject.utils.invisible
-import com.example.baseproject.utils.visible
+import com.example.baseproject.utils.ex.invisible
+import com.example.baseproject.utils.ex.visible
 import com.snake.squad.adslib.AdmobLib
 import com.snake.squad.adslib.cmp.GoogleMobileAdsConsentManager
 import com.snake.squad.adslib.utils.AdsHelper
