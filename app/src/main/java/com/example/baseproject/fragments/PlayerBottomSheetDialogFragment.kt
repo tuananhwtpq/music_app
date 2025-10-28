@@ -60,8 +60,8 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
                 dismiss()
             }
         }
-        sharedViewModel.currentSongPlaying.observe(viewLifecycleOwner) { song ->
-            binding.tvSongTitle.text = song?.title ?: "Unknown Song"
+        sharedViewModel.currentTrackPlaying.observe(viewLifecycleOwner) { song ->
+            binding.tvSongTitle.text = song?.title ?: "Unknown Track"
         }
     }
 

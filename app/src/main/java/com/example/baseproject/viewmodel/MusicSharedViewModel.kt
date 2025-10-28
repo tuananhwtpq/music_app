@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.baseproject.models.Song
+import com.example.baseproject.models.Track
 
 class MusicSharedViewModel : ViewModel() {
 
@@ -12,15 +12,15 @@ class MusicSharedViewModel : ViewModel() {
         const val TAG = "MusicSharedViewModel"
     }
 
-    private val _currentSongPlaying = MutableLiveData<Song?>(null)
-    val currentSongPlaying: LiveData<Song?> = _currentSongPlaying
+    private val _currentTrackPlaying = MutableLiveData<Track?>(null)
+    val currentTrackPlaying: LiveData<Track?> = _currentTrackPlaying
 
     private val _isPlayerSheetVisible = MutableLiveData<Boolean>(false)
     val isPlayerSheetVisible: LiveData<Boolean> = _isPlayerSheetVisible
 
-    fun selectSong(song: Song) {
-        _currentSongPlaying.postValue(song)
-        Log.d(TAG, "Current song playing: ${_currentSongPlaying.value?.title}")
+    fun selectSong(track: Track) {
+        _currentTrackPlaying.postValue(track)
+        Log.d(TAG, "Current track playing: ${_currentTrackPlaying.value?.title}")
     }
 
     fun setPlayerSheetVisibility(isVisible: Boolean) {

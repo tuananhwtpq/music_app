@@ -34,7 +34,7 @@
         app:layout_constraintEnd_toStartOf="@id/play_pause_btn"
         app:layout_constraintStart_toEndOf="@id/iv_current"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="This is a playlist song....................." />
+        tools:text="This is a playlist track....................." />
 
     <ImageView
         android:id="@+id/play_pause_btn"

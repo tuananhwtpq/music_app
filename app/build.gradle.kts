@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-parcelize")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -88,8 +89,10 @@ dependencies {
 
     //room
     implementation(libs.androidx.room.runtime)
-    //ksp
     implementation(libs.androidx.room.ktx)
+
+    //ksp
+    ksp(libs.androidx.room.compiler)
 
     //exo player
     implementation(libs.androidx.media3.exoplayer)

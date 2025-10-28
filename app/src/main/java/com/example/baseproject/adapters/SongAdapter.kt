@@ -6,17 +6,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.baseproject.R
 import com.example.baseproject.databinding.SongItemBinding
-import com.example.baseproject.models.Song
+import com.example.baseproject.models.Track
 
 class SongAdapter(
-    private val onSongClick: (Song) -> Unit
+    private val onSongClick: (Track) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
-    private val songs = mutableListOf<Song>()
+    private val tracks = mutableListOf<Track>()
 
     inner class SongViewHolder(private val binding: SongItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Song) {
+        fun bind(item: Track) {
             binding.tvSongName.text = item.title
             binding.tvSongArtist.text = item.artist
             Glide.with(binding.root.context)
@@ -39,14 +39,14 @@ class SongAdapter(
     }
 
     override fun onBindViewHolder(holder: SongAdapter.SongViewHolder, position: Int) {
-        holder.bind(songs[position])
+        holder.bind(tracks[position])
     }
 
-    override fun getItemCount(): Int = songs.size
+    override fun getItemCount(): Int = tracks.size
 
-    fun submitList(data: List<Song>) {
-        songs.clear()
-        songs.addAll(data)
+    fun submitList(data: List<Track>) {
+        tracks.clear()
+        tracks.addAll(data)
         notifyDataSetChanged()
     }
 }

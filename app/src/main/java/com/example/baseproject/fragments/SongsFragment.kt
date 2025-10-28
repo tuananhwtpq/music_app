@@ -29,7 +29,7 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
         songAdapter = SongAdapter { song ->
             Log.d(TAG, "Click item: ${song.title}")
-            if (sharedViewModel.currentSongPlaying.value != song) {
+            if (sharedViewModel.currentTrackPlaying.value != song) {
                 sharedViewModel.selectSong(song)
             }
             sharedViewModel.setPlayerSheetVisibility(true)
@@ -45,7 +45,7 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
     override fun initActionView() {
 
-        viewModel.songList.observe(viewLifecycleOwner) { songs ->
+        viewModel.trackList.observe(viewLifecycleOwner) { songs ->
             songAdapter.submitList(songs)
         }
     }

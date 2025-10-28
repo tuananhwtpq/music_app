@@ -27,7 +27,7 @@ import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivityMainBinding
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
-import com.example.baseproject.models.Song
+import com.example.baseproject.models.Track
 import com.example.baseproject.service.MyPlaybackService
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.tabs.TabLayoutMediator
@@ -134,7 +134,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
 
-        sharedViewModel.currentSongPlaying.observe(this) { selectedSong ->
+        sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
             if (selectedSong == null) return@observe
 
 
@@ -159,7 +159,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 mediaController?.play()
 
             } else {
-                Log.d(TAG, "This is a Song")
+                Log.d(TAG, "This is a Track")
             }
         }
 
@@ -222,12 +222,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-    private fun buildMetadataFromSong(song: Song): MediaMetadata {
+    private fun buildMetadataFromSong(track: Track): MediaMetadata {
         return MediaMetadata.Builder()
-            .setTitle(song.title)
-            .setArtist(song.artist)
-            .setAlbumTitle(song.album)
-            .setArtworkUri(song.albumArtUri)
+            .setTitle(track.title)
+            .setArtist(track.artist)
+            .setAlbumTitle(track.album)
+            .setArtworkUri(track.albumArtUri)
             .build()
 
     }
@@ -400,7 +400,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     //region MINI PLAYER DATA
     private fun updateMiniPlayerMetadata(mediaMetadata: MediaMetadata) {
-        binding.miniPlayer.tvSongName.text = mediaMetadata.title ?: "Unknown Song"
+        binding.miniPlayer.tvSongName.text = mediaMetadata.title ?: "Unknown Track"
 
         Glide.with(this)
             .load(mediaMetadata.artworkUri)

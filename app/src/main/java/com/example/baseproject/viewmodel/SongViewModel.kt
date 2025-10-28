@@ -8,18 +8,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.baseproject.models.Song
+import com.example.baseproject.models.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SongViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _songList = MutableLiveData<List<Song>>(emptyList())
-    val songList: LiveData<List<Song>> = _songList
+    private val _trackList = MutableLiveData<List<Track>>(emptyList())
+    val trackList: LiveData<List<Track>> = _trackList
 
     fun loadSongs() {
         viewModelScope.launch(Dispatchers.IO) {
-            val songList = mutableListOf<Song>()
+            val trackList = mutableListOf<Track>()
 
             val projection = arrayOf(
                 MediaStore.Audio.Media._ID,
@@ -59,8 +59,8 @@ class SongViewModel(application: Application) : AndroidViewModel(application) {
                         Uri.parse("content://media/external/audio/albumart"), albumId
                     )
 
-                    songList.add(
-                        Song(
+                    trackList.add(
+                        Track(
                             id = id,
                             title = title,
                             artist = artist,
@@ -71,7 +71,7 @@ class SongViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
             }
-            _songList.postValue(songList)
+            _trackList.postValue(trackList)
         }
     }
 }
