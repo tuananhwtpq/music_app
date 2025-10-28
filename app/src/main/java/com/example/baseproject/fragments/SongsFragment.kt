@@ -37,7 +37,7 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
                 sharedViewModel.setPlayerSheetVisibility(true)
             },
             onTymClicked = { song ->
-                showToast("Tym bài hát ${song.title}")
+                showToast("Tym bài hát ${song.title} ")
             },
             onMoreClicked = { song ->
                 val trackInfoDialog = TrackInfoFragment.newInstance()

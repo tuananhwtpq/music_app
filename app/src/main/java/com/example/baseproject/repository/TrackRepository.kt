@@ -78,4 +78,10 @@ class TrackRepository(private val trackDao: TrackDao, private val context: Conte
         }
     }
 
+    suspend fun addTrackToPlayStack(track: Track) {
+        withContext(Dispatchers.IO) {
+            trackDao.insertTrackToPlayStack(track)
+        }
+    }
+
 }

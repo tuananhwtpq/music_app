@@ -1,5 +1,6 @@
 package com.example.baseproject.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +14,10 @@ class SongAdapter(
     private val onTymClicked: (Track) -> Unit,
     private val onMoreClicked: (Track) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
+
+    companion object {
+        const val TAG = "SongAdapter_DEBUG"
+    }
 
     private val tracks = mutableListOf<Track>()
 
@@ -30,8 +35,19 @@ class SongAdapter(
                 onSongClick(item)
             }
 
+            //handle favorite toggle
+
             binding.btnFavorite.setOnClickListener {
                 onTymClicked(item)
+
+                item.isFavorite = !item.isFavorite
+                val isFavorite = item.isFavorite
+                Log.d(TAG, "Favorite status for ${item.title}: $isFavorite")
+                if (isFavorite) {
+                    binding.btnFavorite.setImageResource(R.drawable.play_btn_2)
+                } else {
+                    binding.btnFavorite.setImageResource(R.drawable.outline_ad_24)
+                }
             }
 
             binding.btnMore.setOnClickListener {
