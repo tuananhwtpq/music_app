@@ -84,7 +84,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     //region INIT VIEW
     override fun initView() {
-        Log.d("Test", "MainActivity")
         binding.mainViewPager.adapter = mAdapter
 
         setupTabLayout()
@@ -134,7 +133,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
-        Log.d(TAG, "Observed shared viewmodel is running")
 
         sharedViewModel.currentSongPlaying.observe(this) { selectedSong ->
             if (selectedSong == null) return@observe
@@ -173,19 +171,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
 
             if (isVisible) {
-                if (existingSheet?.dialog?.isShowing == true) {
-                    return@observe
-                }
+//                if (existingSheet?.dialog?.isShowing == true) {
+//                    return@observe
+//                }
+//
+//                if (existingSheet != null) {
+//                    existingSheet.dialog?.show()
+//                } else {
+//                    PlayerBottomSheetDialogFragment.newInstance()
+//                        .show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
+//                }
 
-                if (existingSheet != null) {
-                    existingSheet.dialog?.show()
-                } else {
+                if (existingSheet == null || existingSheet.isDetached) {
+                    Log.d(TAG, "Show new sheet")
                     PlayerBottomSheetDialogFragment.newInstance()
                         .show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
+                } else {
+                    if (existingSheet.dialog == null || !existingSheet.dialog!!.isShowing) {
+                        Log.d(TAG, "Show existing sheet")
+                        existingSheet.show(
+                            supportFragmentManager,
+                            PlayerBottomSheetDialogFragment.TAG
+                        )
+                    }
                 }
 
             } else {
-                existingSheet?.dismiss()
+                existingSheet?.dismissAllowingStateLoss()
+                Log.d(TAG, "Dismiss sheet")
             }
 
             updateMiniPlayerVisibility(
@@ -198,7 +211,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     private fun handleItemClicked() {
         binding.miniPlayer.playPauseBtn.setOnClickListener {
-            Log.d(TAG, "Play pause btn is onclicked")
             if (mediaController?.isPlaying == true) {
                 mediaController?.pause()
             } else {
@@ -207,7 +219,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
         binding.miniPlayer.root.setOnClickListener {
             sharedViewModel.setPlayerSheetVisibility(true)
-            Log.d(TAG, "Mini player is onclicked")
         }
     }
 
@@ -251,7 +262,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
                 //the second time user denied permission
                 shouldShowRequestPermissionRationale(permission) -> {
-                    Log.d(TAG, "Showing rationale for notification permission")
                     showPermissionRequest()
                 }
                 //the first time user access app
