@@ -9,7 +9,9 @@ import com.example.baseproject.databinding.SongItemBinding
 import com.example.baseproject.models.Track
 
 class SongAdapter(
-    private val onSongClick: (Track) -> Unit
+    private val onSongClick: (Track) -> Unit,
+    private val onTymClicked: (Track) -> Unit,
+    private val onMoreClicked: (Track) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.SongViewHolder>() {
 
     private val tracks = mutableListOf<Track>()
@@ -26,6 +28,14 @@ class SongAdapter(
 
             binding.root.setOnClickListener {
                 onSongClick(item)
+            }
+
+            binding.btnFavorite.setOnClickListener {
+                onTymClicked(item)
+            }
+
+            binding.btnMore.setOnClickListener {
+                onMoreClicked(item)
             }
         }
     }

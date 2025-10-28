@@ -8,8 +8,8 @@ import androidx.activity.OnBackPressedCallback
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivitySplashBinding
 import com.example.baseproject.utils.Constants
-import com.example.baseproject.utils.invisible
-import com.example.baseproject.utils.visible
+import com.example.baseproject.utils.ex.invisible
+import com.example.baseproject.utils.ex.visible
 import com.snake.squad.adslib.AdmobLib
 import com.snake.squad.adslib.cmp.GoogleMobileAdsConsentManager
 import com.snake.squad.adslib.utils.AdsHelper

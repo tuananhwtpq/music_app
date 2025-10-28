@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.baseproject.adapters.SongAdapter
 import com.example.baseproject.bases.BaseFragment
 import com.example.baseproject.databinding.FragmentSongsBinding
+import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.example.baseproject.viewmodel.SongViewModel
 
@@ -27,14 +28,24 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
     override fun initView() {
 
-        songAdapter = SongAdapter { song ->
-            Log.d(TAG, "Click item: ${song.title}")
-            if (sharedViewModel.currentTrackPlaying.value != song) {
-                sharedViewModel.selectSong(song)
+        songAdapter = SongAdapter(
+            onSongClick = { song ->
+                Log.d(TAG, "Click item: ${song.title}")
+                if (sharedViewModel.currentTrackPlaying.value != song) {
+                    sharedViewModel.selectSong(song)
+                }
+                sharedViewModel.setPlayerSheetVisibility(true)
+            },
+            onTymClicked = { song ->
+                showToast("Tym bài hát ${song.title}")
+            },
+            onMoreClicked = { song ->
+                val trackInfoDialog = TrackInfoFragment.newInstance()
+                trackInfoDialog.show(childFragmentManager, TrackInfoFragment.TAG)
             }
-            sharedViewModel.setPlayerSheetVisibility(true)
+        )
 
-        }
+
 
 
         binding.rvListSongs.apply {

@@ -14,8 +14,8 @@ import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivityLanguageBinding
 import com.example.baseproject.utils.Common
 import com.example.baseproject.utils.Constants
-import com.example.baseproject.utils.gone
-import com.example.baseproject.utils.visible
+import com.example.baseproject.utils.ex.gone
+import com.example.baseproject.utils.ex.visible
 import kotlinx.coroutines.launch
 
 class LanguageActivity : BaseActivity<ActivityLanguageBinding>(ActivityLanguageBinding::inflate) {

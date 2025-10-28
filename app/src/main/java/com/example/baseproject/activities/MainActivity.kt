@@ -26,9 +26,11 @@ import com.example.baseproject.R
 import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.databinding.ActivityMainBinding
+import com.example.baseproject.fragments.PlayStackBottomSheetFragment
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
 import com.example.baseproject.models.Track
 import com.example.baseproject.service.MyPlaybackService
+import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.common.util.concurrent.ListenableFuture
@@ -209,7 +211,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-    private fun handleItemClicked() {
+    //region MINI PLAYER CLICKED
+    private fun handleMiniPlayerItemClicked() {
         binding.miniPlayer.playPauseBtn.setOnClickListener {
             if (mediaController?.isPlaying == true) {
                 mediaController?.pause()
@@ -217,8 +220,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 mediaController?.play()
             }
         }
+
         binding.miniPlayer.root.setOnClickListener {
             sharedViewModel.setPlayerSheetVisibility(true)
+        }
+
+        binding.miniPlayer.playStackBtn.setOnClickListener {
+            val playStackSheet = PlayStackBottomSheetFragment.newInstance()
+            playStackSheet.show(supportFragmentManager, PlayStackBottomSheetFragment.TAG)
+        }
+
+        binding.miniPlayer.nextSongBtn.setOnClickListener {
+            showToast("Next song clicked")
         }
     }
 
@@ -412,7 +425,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     //region INIT ACTION VIEW
     override fun initActionView() {
         observedSharedViewModel()
-        handleItemClicked()
+        handleMiniPlayerItemClicked()
     }
 
     override fun onStop() {

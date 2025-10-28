@@ -1,6 +1,7 @@
-package com.example.baseproject.utils
+package com.example.baseproject.utils.ex
 
 import android.view.View
+import com.example.baseproject.utils.UnDoubleClick
 
 fun View.gone() {
     visibility = View.GONE

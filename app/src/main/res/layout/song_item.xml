@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
     android:background="@color/gray"
+    android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="4dp">
 
@@ -59,16 +60,19 @@
 
         <ImageView
             android:id="@+id/btn_favorite"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
             android:contentDescription="button favorite"
+            android:padding="8dp"
             app:srcCompat="@drawable/outline_ad_24" />
 
         <ImageView
             android:id="@+id/btn_more"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:contentDescription="button More info"
+            android:padding="8dp"
             app:srcCompat="@drawable/outline_ad_24" />
     </LinearLayout>
 </LinearLayout>
