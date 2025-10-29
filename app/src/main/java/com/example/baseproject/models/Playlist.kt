@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "playlists")
 data class Playlist(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo("play_list_id") val playListId: Long,
     @ColumnInfo("name") var name: String
 

@@ -2,7 +2,6 @@ package com.example.baseproject.activities
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -39,6 +38,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
 
@@ -110,13 +110,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun onStart() {
         super.onStart()
 
-        //startingService()
         initPlayer()
-    }
-
-    private fun startingService() {
-        val serviceIntent = Intent(this, MyPlaybackService::class.java)
-        startService(serviceIntent)
     }
 
     //region INIT PLAYER
@@ -132,7 +126,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
                 sharedViewModel.setMediaController(mediaController)
 
-                //restoreQueueFromDatabase()
+                restoreQueueFromDatabase()
 
                 mediaController?.addListener(playerListener)
                 updateUiFromController(mediaController)
@@ -145,31 +139,42 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private fun observedSharedViewModel() {
 
         sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
-            if (selectedSong == null) return@observe
 
-
+            val selectedSongId = selectedSong?.uri.toString()
             val currentMediaId = mediaController?.currentMediaItem?.mediaId
-            Log.d(TAG, "Current media id: ${currentMediaId.toString()}")
 
-            val newSongUriString = selectedSong.uri.toString()
-            Log.d(TAG, "New song Uri String: $newSongUriString")
+            if (selectedSongId == currentMediaId) {
+                if (mediaController?.isPlaying == true) {
+                    mediaController?.pause()
+                } else {
+                    mediaController?.play()
+                }
+                return@observe
+            }
 
+            var foundIndex = -1
 
-            if (newSongUriString != currentMediaId) {
-                Log.d(TAG, "new song selected")
-
+            for (i in 0 until (mediaController?.mediaItemCount ?: 0)) {
+                val item = mediaController?.getMediaItemAt(i)
+                if (item?.mediaId == selectedSongId) {
+                    foundIndex = i
+                    break
+                }
+            }
+            if (foundIndex != -1) {
+                mediaController?.seekTo(foundIndex, 0L)
+                mediaController?.prepare()
+                mediaController?.play()
+            } else {
                 val mediaItem = MediaItem.Builder()
-                    .setUri(selectedSong.uri)
-                    .setMediaId(newSongUriString)
+                    .setUri(selectedSong?.uri)
+                    .setMediaId(selectedSongId)
                     .setMediaMetadata(buildMetadataFromSong(selectedSong))
                     .build()
 
                 mediaController?.setMediaItem(mediaItem)
                 mediaController?.prepare()
                 mediaController?.play()
-
-            } else {
-                Log.d(TAG, "This is a Track")
             }
         }
 
@@ -236,33 +241,69 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     }
 
-//    private fun restoreQueueFromDatabase() {
-//        val db = SongsDatabase.getInstance(applicationContext)
-//
-//        lifecycleScope.launch(Dispatchers.IO) {
-//
-//            val savedQueue =
-//                db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
-//
-//            if (savedQueue != null && savedQueue.tracks.isNotEmpty()) {
-//                val mediaItems = savedQueue.tracks
-//                    .sortedBy { it.orderInPlayList }
-//                    .map { track ->
-//                        MediaItem.Builder()
-//                            .setUri(track.uri)
-//                            .setMediaId(track.uri.toString())
-//                            .setMediaMetadata(buildMetadataFromSong(track))
-//                            .build()
-//                    }
-//
-//                withContext(Dispatchers.Main) {
-//                    mediaController?.addMediaItems(mediaItems)
-//                    mediaController?.prepare()
-//                    Log.d(TAG, "Restored ${mediaItems.size} tracks to queue")
-//                }
-//            }
-//        }
-//    }
+    private fun restoreQueueFromDatabase() {
+        val db = SongsDatabase.getInstance(applicationContext)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val crossRefs = db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID) //
+
+            val mediaItemsToAdd: List<MediaItem>
+
+            if (crossRefs.isEmpty()) {
+                Log.d(TAG, "Saved queue is empty. Populating with all tracks.")
+
+                val allTracks = db.trackDao().getAllTracksOnce() //
+
+                if (allTracks.isEmpty()) {
+                    Log.d(TAG, "No tracks found in database to populate queue.")
+                    return@launch
+                }
+
+                val initialQueueCrossRefs = allTracks.mapIndexed { index, track ->
+                    PlayListSongCrossRef(
+                        playListId = MyPlaybackService.PLAY_STACK_ID,
+                        mediaStoreId = track.mediaStoreId,
+                        orderInPlaylist = index
+                    )
+                }
+
+                db.playlistDao().insertAllTracksToPlaylist(initialQueueCrossRefs)
+
+                mediaItemsToAdd = allTracks.map { track ->
+                    MediaItem.Builder()
+                        .setUri(track.uri)
+                        .setMediaId(track.uri.toString())
+                        .setMediaMetadata(buildMetadataFromSong(track))
+                        .build()
+                }
+                Log.d(TAG, "Prepared initial queue with ${mediaItemsToAdd.size} tracks.")
+
+            } else {
+                Log.d(TAG, "Restoring saved queue with ${crossRefs.size} entries.")
+                val trackIds = crossRefs.map { it.mediaStoreId }
+                val tracksMap =
+                    db.trackDao().getTracksByIds(trackIds).associateBy { it.mediaStoreId }
+                val sortedTracks =
+                    crossRefs.mapNotNull { crossRef -> tracksMap[crossRef.mediaStoreId] }
+
+                mediaItemsToAdd = sortedTracks.map { track ->
+                    MediaItem.Builder()
+                        .setUri(track.uri)
+                        .setMediaId(track.uri.toString())
+                        .setMediaMetadata(buildMetadataFromSong(track))
+                        .build()
+                }
+            }
+
+            if (mediaItemsToAdd.isNotEmpty()) {
+                withContext(Dispatchers.Main) {
+                    mediaController?.addMediaItems(mediaItemsToAdd)
+                    mediaController?.prepare()
+                    Log.d(TAG, "Added ${mediaItemsToAdd.size} items to MediaController queue.")
+                }
+            }
+        }
+    }
 
     //region MINI PLAYER CLICKED
     private fun handleMiniPlayerItemClicked() {
@@ -286,16 +327,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         binding.miniPlayer.nextSongBtn.setOnClickListener {
             Log.d(TAG, "Next song clicked")
             sharedViewModel.mediaController.value?.seekToNextMediaItem()
-            //val currentIndex = sharedViewModel.mediaController.value.
         }
     }
 
-    private fun buildMetadataFromSong(track: Track): MediaMetadata {
+    private fun buildMetadataFromSong(track: Track?): MediaMetadata {
         return MediaMetadata.Builder()
-            .setTitle(track.title)
-            .setArtist(track.artist)
-            .setAlbumTitle(track.album)
-            .setArtworkUri(track.albumArtUri)
+            .setTitle(track?.title)
+            .setArtist(track?.artist)
+            .setAlbumTitle(track?.album)
+            .setArtworkUri(track?.albumArtUri)
             .build()
 
     }

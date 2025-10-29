@@ -8,6 +8,7 @@ import androidx.room.Transaction
 import com.example.baseproject.models.PlayListSongCrossRef
 import com.example.baseproject.models.Playlist
 import com.example.baseproject.models.PlaylistWithTracks
+import com.example.baseproject.models.Track
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,7 +36,10 @@ interface PlaylistDao {
 
     @Transaction
     @Query("SELECT * FROM PLAYLISTS")
-    fun getPlayListWithTracks(): Flow<List<PlaylistWithTracks>>
+    fun getPlayListWithTracks(): List<PlaylistWithTracks>
+
+    @Query("SELECT * FROM tracks WHERE media_store_id IN (:trackIds)")
+    suspend fun getTracksByIds(trackIds: List<Long>): List<Track>
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE play_list_id = :playlistId")
