@@ -4,13 +4,18 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import com.example.baseproject.interfaces.PlaylistDao
 import com.example.baseproject.interfaces.TrackDao
 import com.example.baseproject.models.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-class TrackRepository(private val trackDao: TrackDao, private val context: Context) {
+class TrackRepository(
+    private val trackDao: TrackDao,
+    private val playlistDao: PlaylistDao,
+    private val context: Context
+) {
 
     val allTrack: Flow<List<Track>> = trackDao.getAll()
 
@@ -75,6 +80,20 @@ class TrackRepository(private val trackDao: TrackDao, private val context: Conte
                 }
             }
             trackDao.insertAll(trackList)
+
+//            val currentQueue = playlistDao.getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
+//
+//            if (currentQueue.isNotEmpty() && trackList.isNotEmpty()) {
+//                val updateQueue = trackList.mapIndexed { index, track ->
+//                    PlayListSongCrossRef(
+//                        playListId = MyPlaybackService.PLAY_STACK_ID,
+//                        mediaStoreId = track.mediaStoreId,
+//                        orderInPlaylist = index
+//                    )
+//                }
+//
+//                playlistDao.insertAllTracksToPlaylist(updateQueue)
+//            }
         }
     }
 

@@ -44,9 +44,9 @@ class SongAdapter(
                 val isFavorite = item.isFavorite
                 Log.d(TAG, "Favorite status for ${item.title}: $isFavorite")
                 if (isFavorite) {
-                    binding.btnFavorite.setImageResource(R.drawable.play_btn_2)
+                    binding.btnFavorite.setImageResource(R.drawable.tym_clicked)
                 } else {
-                    binding.btnFavorite.setImageResource(R.drawable.outline_ad_24)
+                    binding.btnFavorite.setImageResource(R.drawable.hear_btn_2)
                 }
             }
 

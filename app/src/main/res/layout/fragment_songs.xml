@@ -27,10 +27,11 @@
             android:padding="12dp">
 
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:contentDescription="image play"
-                app:srcCompat="@drawable/outline_ad_24" />
+                android:padding="2dp"
+                app:srcCompat="@drawable/play_btn_2" />
 
             <TextView
                 android:id="@+id/btn_play"
@@ -38,7 +39,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:text="@string/play"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <TextView
@@ -55,10 +57,11 @@
             android:padding="12dp">
 
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:contentDescription="image shuffe"
-                app:srcCompat="@drawable/outline_ad_24" />
+                android:padding="2dp"
+                app:srcCompat="@drawable/shuffle_btn_2" />
 
             <TextView
                 android:id="@+id/btn_shuffle"
@@ -66,7 +69,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:text="@string/shuffle"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
@@ -82,14 +86,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layout_two_button">
 
+        <ImageView
+            android:id="@+id/iv_sort_by"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/more_btn" />
+
         <TextView
             android:id="@+id/tv_sort_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawablePadding="4dp"
             android:gravity="center"
-            android:text="Time Added"
-            app:drawableStartCompat="@drawable/outline_ad_24" />
+            android:text="Time Added" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -65,7 +65,7 @@
             android:layout_marginEnd="12dp"
             android:contentDescription="button favorite"
             android:padding="8dp"
-            app:srcCompat="@drawable/outline_ad_24" />
+            app:srcCompat="@drawable/hear_btn_2" />
 
         <ImageView
             android:id="@+id/btn_more"
@@ -73,6 +73,6 @@
             android:layout_height="40dp"
             android:contentDescription="button More info"
             android:padding="8dp"
-            app:srcCompat="@drawable/outline_ad_24" />
+            app:srcCompat="@drawable/item_more" />
     </LinearLayout>
 </LinearLayout>

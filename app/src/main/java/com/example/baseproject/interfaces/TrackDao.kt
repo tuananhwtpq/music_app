@@ -19,5 +19,11 @@ interface TrackDao {
     @Query("SELECT * FROM tracks")
     fun getAll(): Flow<List<Track>>
 
+    @Query("SELECT * FROM tracks WHERE media_store_id IN (:trackIds)")
+    suspend fun getTracksByIds(trackIds: List<Long>): List<Track>
+
+    @Query("SELECT * FROM tracks")
+    suspend fun getAllTracksOnce(): List<Track>
+
 
 }

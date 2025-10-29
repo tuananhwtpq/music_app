@@ -13,8 +13,8 @@ import kotlinx.parcelize.Parcelize
     tableName = "tracks",
 )
 data class Track(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo("media_store_id") var mediaStoreId: Long? = null,
+    @PrimaryKey
+    @ColumnInfo("media_store_id") var mediaStoreId: Long,
     @ColumnInfo("title") var title: String,
     @ColumnInfo("artist") var artist: String,
     @ColumnInfo("album") var album: String? = null,
@@ -25,6 +25,6 @@ data class Track(
     @ColumnInfo("is_favorite") var isFavorite: Boolean = false,
     @ColumnInfo("date_added") var dateAdded: Int? = null,
     @ColumnInfo("year") var year: Int? = null,
-) : Parcelable, ListItem() {
+) : Parcelable, ListItem()
 
-}
+

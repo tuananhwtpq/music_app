@@ -8,8 +8,8 @@ data class PlaylistWithTracks(
     @Embedded val playlist: Playlist,
 
     @Relation(
-        parentColumn = "playListId",
-        entityColumn = "mediaStoreId",
+        parentColumn = "play_list_id",
+        entityColumn = "media_store_id",
         associateBy = Junction(PlayListSongCrossRef::class)
     )
     val tracks: List<Track>

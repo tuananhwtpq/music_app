@@ -2,9 +2,9 @@ package com.example.baseproject.activities
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -25,16 +26,20 @@ import com.bumptech.glide.Glide
 import com.example.baseproject.R
 import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
+import com.example.baseproject.database.SongsDatabase
 import com.example.baseproject.databinding.ActivityMainBinding
 import com.example.baseproject.fragments.PlayStackBottomSheetFragment
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
+import com.example.baseproject.models.PlayListSongCrossRef
 import com.example.baseproject.models.Track
 import com.example.baseproject.service.MyPlaybackService
-import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
 
@@ -106,13 +111,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun onStart() {
         super.onStart()
 
-        startingService()
         initPlayer()
-    }
-
-    private fun startingService() {
-        val serviceIntent = Intent(this, MyPlaybackService::class.java)
-        startService(serviceIntent)
     }
 
     //region INIT PLAYER
@@ -126,42 +125,128 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             {
                 mediaController = controllerFeature.get()
 
+                sharedViewModel.setMediaController(mediaController)
+
+                restoreQueueFromDatabase()
+
                 mediaController?.addListener(playerListener)
                 updateUiFromController(mediaController)
 
             }, MoreExecutors.directExecutor()
         )
     }
+    private fun saveCurrentQueueToDatabase() {
+        Log.d(TAG, "Save curent queue database")
+        val controller = mediaController ?: return
+        val currentQueueSize = controller.mediaItemCount
+
+        Log.d(TAG, "current QueueSize: $currentQueueSize")
+
+        if (currentQueueSize == 0) {
+            Log.d(TAG, "Queue is empty, potentially clearing DB.")
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val db = SongsDatabase.getInstance(applicationContext)
+                    db.playlistDao().clearPlaylist(MyPlaybackService.PLAY_STACK_ID)
+                    Log.d(TAG, "Cleared empty queue from database.")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error clearing empty queue from database", e)
+                }
+            }
+            return
+        }
+
+        val currentMediaItems = mutableListOf<MediaItem>()
+        for (i in 0 until currentQueueSize) {
+            currentMediaItems.add(controller.getMediaItemAt(i))
+        }
+
+        Log.d(TAG, "Saving current queue with $currentQueueSize tracks to database.")
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "Coroutine started for saving queue.")
+                val db = SongsDatabase.getInstance(applicationContext)
+                val newQueueCrossRefs = mutableListOf<PlayListSongCrossRef>()
+
+                currentMediaItems.forEachIndexed { index, mediaItem ->
+                    Log.d(TAG, "Processing item $index: extras=${mediaItem.mediaMetadata.extras}")
+                    val mediaStoreId = mediaItem.mediaMetadata.extras?.getLong("mediaStoreId")
+
+                    if (mediaStoreId == null) {
+                        Log.w(TAG, "Skipping item $index: mediaStoreId not found in extras.")
+                        return@forEachIndexed
+                    }
+
+                    newQueueCrossRefs.add(
+                        PlayListSongCrossRef(
+                            playListId = MyPlaybackService.PLAY_STACK_ID,
+                            mediaStoreId = mediaStoreId,
+                            orderInPlaylist = index
+                        )
+                    )
+                }
+
+                Log.d(TAG, "Prepared ${newQueueCrossRefs.size} CrossRefs.")
+                db.playlistDao().clearPlaylist(MyPlaybackService.PLAY_STACK_ID)
+
+                Log.d(TAG, "Old queue cleared. Inserting new queue")
+                if (newQueueCrossRefs.isNotEmpty()) {
+                    db.playlistDao().insertAllTracksToPlaylist(newQueueCrossRefs)
+                    Log.d(
+                        TAG,
+                        "Saved current queue with ${newQueueCrossRefs.size} tracks to database."
+                    )
+                } else {
+                    Log.w(TAG, "No valid CrossRefs prepared, database queue remains empty.")
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving queue to database", e)
+            }
+        }
+    }
 
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
 
         sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
-            if (selectedSong == null) return@observe
 
-
+            val selectedSongId = selectedSong?.uri.toString()
             val currentMediaId = mediaController?.currentMediaItem?.mediaId
-            Log.d(TAG, "Current media id: ${currentMediaId.toString()}")
 
-            val newSongUriString = selectedSong.uri.toString()
-            Log.d(TAG, "New song Uri String: $newSongUriString")
+            if (selectedSongId == currentMediaId) {
+                if (mediaController?.isPlaying == true) {
+                    mediaController?.pause()
+                } else {
+                    mediaController?.play()
+                }
+                return@observe
+            }
 
+            var foundIndex = -1
 
-            if (newSongUriString != currentMediaId) {
-                Log.d(TAG, "new song selected")
-
+            for (i in 0 until (mediaController?.mediaItemCount ?: 0)) {
+                val item = mediaController?.getMediaItemAt(i)
+                if (item?.mediaId == selectedSongId) {
+                    foundIndex = i
+                    break
+                }
+            }
+            if (foundIndex != -1) {
+                mediaController?.seekTo(foundIndex, 0L)
+                mediaController?.prepare()
+                mediaController?.play()
+            } else {
                 val mediaItem = MediaItem.Builder()
-                    .setUri(selectedSong.uri)
-                    .setMediaId(newSongUriString)
+                    .setUri(selectedSong?.uri)
+                    .setMediaId(selectedSongId)
                     .setMediaMetadata(buildMetadataFromSong(selectedSong))
                     .build()
 
                 mediaController?.setMediaItem(mediaItem)
                 mediaController?.prepare()
                 mediaController?.play()
-
-            } else {
-                Log.d(TAG, "This is a Track")
             }
         }
 
@@ -173,17 +258,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
 
             if (isVisible) {
-//                if (existingSheet?.dialog?.isShowing == true) {
-//                    return@observe
-//                }
-//
-//                if (existingSheet != null) {
-//                    existingSheet.dialog?.show()
-//                } else {
-//                    PlayerBottomSheetDialogFragment.newInstance()
-//                        .show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
-//                }
-
                 if (existingSheet == null || existingSheet.isDetached) {
                     Log.d(TAG, "Show new sheet")
                     PlayerBottomSheetDialogFragment.newInstance()
@@ -209,6 +283,98 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             )
 
         }
+
+        sharedViewModel.trackAddToQueue.observe(this) { track ->
+            if (track == null) return@observe
+
+            val mediaItem = MediaItem.Builder()
+                .setUri(track.uri)
+                .setMediaId(track.uri.toString())
+                .setMediaMetadata(buildMetadataFromSong(track))
+                .build()
+
+            val currentQueueSize = mediaController?.mediaItemCount ?: 0
+            mediaController?.addMediaItem(mediaItem)
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                val db = SongsDatabase.getInstance(applicationContext)
+
+                val queueItem = PlayListSongCrossRef(
+                    playListId = MyPlaybackService.PLAY_STACK_ID,
+                    mediaStoreId = track.mediaStoreId,
+                    orderInPlaylist = currentQueueSize,
+                )
+
+                db.playlistDao().addTrackToPlaylist(queueItem)
+            }
+
+            sharedViewModel.handleTrackAddedToQueue()
+        }
+
+    }
+
+    private fun restoreQueueFromDatabase() {
+        val db = SongsDatabase.getInstance(applicationContext)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val crossRefs = db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
+
+            val mediaItemsToAdd: List<MediaItem>
+
+            if (crossRefs.isEmpty()) {
+                Log.d(TAG, "Saved queue is empty. Populating with all tracks.")
+
+                val allTracks = db.trackDao().getAllTracksOnce()
+
+                if (allTracks.isEmpty()) {
+                    Log.d(TAG, "No tracks found in database to populate queue.")
+                    return@launch
+                }
+
+                val initialQueueCrossRefs = allTracks.mapIndexed { index, track ->
+                    PlayListSongCrossRef(
+                        playListId = MyPlaybackService.PLAY_STACK_ID,
+                        mediaStoreId = track.mediaStoreId,
+                        orderInPlaylist = index
+                    )
+                }
+
+                db.playlistDao().insertAllTracksToPlaylist(initialQueueCrossRefs)
+
+                mediaItemsToAdd = allTracks.map { track ->
+                    MediaItem.Builder()
+                        .setUri(track.uri)
+                        .setMediaId(track.uri.toString())
+                        .setMediaMetadata(buildMetadataFromSong(track))
+                        .build()
+                }
+                Log.d(TAG, "Prepared initial queue with ${mediaItemsToAdd.size} tracks.")
+
+            } else {
+                Log.d(TAG, "Restoring saved queue with ${crossRefs.size} entries.")
+                val trackIds = crossRefs.map { it.mediaStoreId }
+                val tracksMap =
+                    db.trackDao().getTracksByIds(trackIds).associateBy { it.mediaStoreId }
+                val sortedTracks =
+                    crossRefs.mapNotNull { crossRef -> tracksMap[crossRef.mediaStoreId] }
+
+                mediaItemsToAdd = sortedTracks.map { track ->
+                    MediaItem.Builder()
+                        .setUri(track.uri)
+                        .setMediaId(track.uri.toString())
+                        .setMediaMetadata(buildMetadataFromSong(track))
+                        .build()
+                }
+            }
+
+            if (mediaItemsToAdd.isNotEmpty()) {
+                withContext(Dispatchers.Main) {
+                    mediaController?.addMediaItems(mediaItemsToAdd)
+                    mediaController?.prepare()
+                    Log.d(TAG, "Added ${mediaItemsToAdd.size} items to MediaController queue.")
+                }
+            }
+        }
     }
 
     //region MINI PLAYER CLICKED
@@ -231,18 +397,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
 
         binding.miniPlayer.nextSongBtn.setOnClickListener {
-            showToast("Next song clicked")
+            Log.d(TAG, "Next song clicked")
+            sharedViewModel.mediaController.value?.seekToNextMediaItem()
         }
     }
 
-    private fun buildMetadataFromSong(track: Track): MediaMetadata {
+    //    private fun buildMetadataFromSong(track: Track?): MediaMetadata {
+//        return MediaMetadata.Builder()
+//            .setTitle(track?.title)
+//            .setArtist(track?.artist)
+//            .setAlbumTitle(track?.album)
+//            .setArtworkUri(track?.albumArtUri)
+//            .build()
+//
+//    }
+    private fun buildMetadataFromSong(track: Track?): MediaMetadata {
+        val extras = Bundle().apply {
+            track?.mediaStoreId?.let { putLong("mediaStoreId", it) }
+        }
         return MediaMetadata.Builder()
-            .setTitle(track.title)
-            .setArtist(track.artist)
-            .setAlbumTitle(track.album)
-            .setArtworkUri(track.albumArtUri)
+            .setTitle(track?.title)
+            .setArtist(track?.artist)
+            .setAlbumTitle(track?.album)
+            .setArtworkUri(track?.albumArtUri)
+            .setExtras(extras)
             .build()
-
     }
 
     //region UPDATE UI CONTROLLER
@@ -399,6 +578,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         binding.miniPlayer.root.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        saveCurrentQueueToDatabase()
+        Log.d(TAG, "OnDestroy")
+    }
+
     //region MINI PLAYER PAUSE PLAY
     private fun updateMiniPlayerPlayPause(isPlaying: Boolean) {
         val iconRes = if (isPlaying) {
@@ -430,6 +615,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun onStop() {
         super.onStop()
+        Log.d(TAG, "Onstop")
+        saveCurrentQueueToDatabase()
         mediaController?.removeListener(playerListener)
         MediaController.releaseFuture(controllerFeature)
     }

@@ -16,7 +16,12 @@ class SongViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val db = SongsDatabase.getInstance(application)
-        trackRepository = TrackRepository(db.trackDao(), application.applicationContext)
+        trackRepository =
+            TrackRepository(
+                db.trackDao(),
+                db.playlistDao(),
+                application.applicationContext
+            )
     }
 
     val trackList: LiveData<List<Track>> = trackRepository.allTrack.asLiveData()
