@@ -49,7 +49,7 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initPLayer()
+        //initPLayer()
         initController()
         observedSharedViewModel()
     }

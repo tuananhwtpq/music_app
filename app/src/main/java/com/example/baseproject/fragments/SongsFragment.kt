@@ -40,13 +40,10 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
                 showToast("Tym bài hát ${song.title} ")
             },
             onMoreClicked = { song ->
-                val trackInfoDialog = TrackInfoFragment.newInstance()
+                val trackInfoDialog = TrackInfoFragment.newInstance(song)
                 trackInfoDialog.show(childFragmentManager, TrackInfoFragment.TAG)
             }
         )
-
-
-
 
         binding.rvListSongs.apply {
             adapter = songAdapter

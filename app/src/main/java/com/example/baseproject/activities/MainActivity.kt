@@ -30,7 +30,6 @@ import com.example.baseproject.fragments.PlayStackBottomSheetFragment
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
 import com.example.baseproject.models.Track
 import com.example.baseproject.service.MyPlaybackService
-import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.common.util.concurrent.ListenableFuture
@@ -106,7 +105,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun onStart() {
         super.onStart()
 
-        startingService()
+        //startingService()
         initPlayer()
     }
 
@@ -125,6 +124,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         controllerFeature.addListener(
             {
                 mediaController = controllerFeature.get()
+
+                sharedViewModel.setMediaController(mediaController)
 
                 mediaController?.addListener(playerListener)
                 updateUiFromController(mediaController)
@@ -173,17 +174,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
 
             if (isVisible) {
-//                if (existingSheet?.dialog?.isShowing == true) {
-//                    return@observe
-//                }
-//
-//                if (existingSheet != null) {
-//                    existingSheet.dialog?.show()
-//                } else {
-//                    PlayerBottomSheetDialogFragment.newInstance()
-//                        .show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
-//                }
-
                 if (existingSheet == null || existingSheet.isDetached) {
                     Log.d(TAG, "Show new sheet")
                     PlayerBottomSheetDialogFragment.newInstance()
@@ -209,6 +199,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             )
 
         }
+
+        sharedViewModel.trackAddToQueue.observe(this) { track ->
+            if (track == null) return@observe
+
+            val mediaItem = MediaItem.Builder()
+                .setUri(track.uri)
+                .setMediaId(track.uri.toString())
+                .setMediaMetadata(buildMetadataFromSong(track))
+                .build()
+
+            mediaController?.addMediaItem(mediaItem)
+            Log.d(TAG, "Track added to queue: ${track.title}")
+            Log.d(TAG, "Total items in queue: ${mediaController?.mediaItemCount}")
+            sharedViewModel.handleTrackAddedToQueue()
+        }
+
     }
 
     //region MINI PLAYER CLICKED
@@ -231,7 +237,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
 
         binding.miniPlayer.nextSongBtn.setOnClickListener {
-            showToast("Next song clicked")
+            Log.d(TAG, "Next song clicked")
+            sharedViewModel.mediaController.value?.seekToNextMediaItem()
+            //val currentIndex = sharedViewModel.mediaController.value.
         }
     }
 
