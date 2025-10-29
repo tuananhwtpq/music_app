@@ -48,4 +48,7 @@ interface PlaylistDao {
     @Transaction
     @Query("SELECT * FROM playlists WHERE play_list_id = :playlistId")
     suspend fun getPlaylistWithTracksByIdOnce(playlistId: Long): PlaylistWithTracks?
+
+    @Query("DELETE FROM playlist_song_cross_ref WHERE play_list_id = :playlistId")
+    suspend fun clearPlaylist(playlistId: Long)
 }

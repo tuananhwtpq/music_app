@@ -116,7 +116,6 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
             adapter = playStackAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
