@@ -25,6 +25,6 @@ data class Track(
     @ColumnInfo("is_favorite") var isFavorite: Boolean = false,
     @ColumnInfo("date_added") var dateAdded: Int? = null,
     @ColumnInfo("year") var year: Int? = null,
-) : Parcelable, ListItem() {
+) : Parcelable, ListItem()
 
-}
+

@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -25,15 +26,19 @@ import com.bumptech.glide.Glide
 import com.example.baseproject.R
 import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
+import com.example.baseproject.database.SongsDatabase
 import com.example.baseproject.databinding.ActivityMainBinding
 import com.example.baseproject.fragments.PlayStackBottomSheetFragment
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
+import com.example.baseproject.models.PlayListSongCrossRef
 import com.example.baseproject.models.Track
 import com.example.baseproject.service.MyPlaybackService
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
 
@@ -127,6 +132,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
                 sharedViewModel.setMediaController(mediaController)
 
+                //restoreQueueFromDatabase()
+
                 mediaController?.addListener(playerListener)
                 updateUiFromController(mediaController)
 
@@ -209,13 +216,53 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 .setMediaMetadata(buildMetadataFromSong(track))
                 .build()
 
+            val currentQueueSize = mediaController?.mediaItemCount ?: 0
             mediaController?.addMediaItem(mediaItem)
-            Log.d(TAG, "Track added to queue: ${track.title}")
-            Log.d(TAG, "Total items in queue: ${mediaController?.mediaItemCount}")
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                val db = SongsDatabase.getInstance(applicationContext)
+
+                val queueItem = PlayListSongCrossRef(
+                    playListId = MyPlaybackService.PLAY_STACK_ID,
+                    mediaStoreId = track.mediaStoreId!!,
+                    orderInPlaylist = currentQueueSize,
+                )
+
+                db.playlistDao().addTrackToPlaylist(queueItem)
+            }
+
             sharedViewModel.handleTrackAddedToQueue()
         }
 
     }
+
+//    private fun restoreQueueFromDatabase() {
+//        val db = SongsDatabase.getInstance(applicationContext)
+//
+//        lifecycleScope.launch(Dispatchers.IO) {
+//
+//            val savedQueue =
+//                db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
+//
+//            if (savedQueue != null && savedQueue.tracks.isNotEmpty()) {
+//                val mediaItems = savedQueue.tracks
+//                    .sortedBy { it.orderInPlayList }
+//                    .map { track ->
+//                        MediaItem.Builder()
+//                            .setUri(track.uri)
+//                            .setMediaId(track.uri.toString())
+//                            .setMediaMetadata(buildMetadataFromSong(track))
+//                            .build()
+//                    }
+//
+//                withContext(Dispatchers.Main) {
+//                    mediaController?.addMediaItems(mediaItems)
+//                    mediaController?.prepare()
+//                    Log.d(TAG, "Restored ${mediaItems.size} tracks to queue")
+//                }
+//            }
+//        }
+//    }
 
     //region MINI PLAYER CLICKED
     private fun handleMiniPlayerItemClicked() {

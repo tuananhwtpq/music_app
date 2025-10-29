@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.Glide
 import com.example.baseproject.databinding.FragmentTrackInfoBinding
 import com.example.baseproject.models.Track
+import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -65,6 +66,7 @@ class TrackInfoFragment : BottomSheetDialogFragment() {
             currentTrack.let { track ->
                 if (track != null) {
                     sharedViewModel.setTrackAddToQueue(track)
+                    showToast("Added to queue: ${track.title}")
                     Log.d(TAG, "onViewCreated: Added to queue: ${track.title}")
                 }
                 dismiss()
