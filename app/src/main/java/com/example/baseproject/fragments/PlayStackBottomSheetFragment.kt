@@ -89,8 +89,14 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
 
     private fun setupAdapter() {
         playStackAdapter = PlayStackAdapter(
-            onTymClicked = { track ->
+            onTymClicked = { mediaItem ->
+                val extras = mediaItem.mediaMetadata.extras
+                val mediaStoreId = extras?.getLong("mediaStoreId", -1L)
+                val currentIsFavorite = extras?.getBoolean("is_favorite") ?: false
 
+                if (mediaStoreId != null && mediaStoreId != -1L) {
+                    sharedViewModel.onFavoriteChanged(mediaStoreId, !currentIsFavorite)
+                }
             },
 
             onDeleteClicked = { mediaItem ->

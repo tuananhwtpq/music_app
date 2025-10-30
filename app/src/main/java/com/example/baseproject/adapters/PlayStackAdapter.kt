@@ -15,7 +15,6 @@ class PlayStackAdapter(
     val onTymClicked: (MediaItem) -> Unit,
     val onDeleteClicked: (MediaItem) -> Unit
 ) : RecyclerView.Adapter<PlayStackAdapter.PlayStackViewHolder>() {
-
     companion object {
         const val TAG = "PlayStackAdapter"
     }
@@ -31,13 +30,22 @@ class PlayStackAdapter(
 
             val context = binding.root.context
 
-            binding.favoriteBtn.setImageResource(
-                if (item.mediaMetadata.extras?.getBoolean("is_favorite") == true) {
-                    R.drawable.tym_clicked
-                } else {
-                    R.drawable.hear_btn_2
-                }
-            )
+            if (item.mediaMetadata.extras?.getBoolean("is_favorite") == true) {
+                binding.favoriteBtn.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        context,
+                        R.drawable.tym_clicked
+                    )
+                )
+            } else {
+                binding.favoriteBtn.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        context,
+                        R.drawable.hear_btn_2
+                    )
+                )
+
+            }
 
             Log.d(
                 TAG,

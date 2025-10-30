@@ -474,7 +474,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     private fun buildMetadataFromSong(track: Track?): MediaMetadata {
         val extras = Bundle().apply {
-            track?.mediaStoreId?.let { putLong("mediaStoreId", it) }
+            if (track != null) {
+                putLong("mediaStoreId", track.mediaStoreId)
+                putBoolean("is_favorite", track.isFavorite)
+            }
         }
         return MediaMetadata.Builder()
             .setTitle(track?.title)
