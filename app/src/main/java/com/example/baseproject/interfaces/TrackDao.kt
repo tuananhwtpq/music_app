@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface TrackDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTrackToPlayStack(track: Track)
+    suspend fun insertTrack(track: Track)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tracks: List<Track>)
@@ -24,6 +24,9 @@ interface TrackDao {
 
     @Query("SELECT * FROM tracks")
     suspend fun getAllTracksOnce(): List<Track>
+
+    @Query("UPDATE tracks SET is_favorite = :isFavorite WHERE media_store_id = :trackId")
+    suspend fun updateFavoriteStatus(trackId: Long, isFavorite: Boolean)
 
 
 }

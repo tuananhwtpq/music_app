@@ -25,6 +25,9 @@ class MusicSharedViewModel : ViewModel() {
     private val _mediaController = MutableLiveData<MediaController?>(null)
     val mediaController: LiveData<MediaController?> = _mediaController
 
+    private val _favoriteStatusChange = MutableLiveData<Pair<Long, Boolean>?>(null)
+    val favoriteStatusChange: LiveData<Pair<Long, Boolean>?> = _favoriteStatusChange
+
     fun setTrackAddToQueue(track: Track) {
         _trackAddToQueue.value = track
         Log.d(TAG, "Track added to queue: ${_trackAddToQueue.value?.title}")
@@ -50,4 +53,13 @@ class MusicSharedViewModel : ViewModel() {
 
         Log.d(TAG, "Is Player sheet visible: $isVisible")
     }
+
+    fun onFavoriteChanged(trackId: Long, isFavorite: Boolean) {
+        _favoriteStatusChange.value = Pair(trackId, isFavorite)
+    }
+
+    fun onFavoriteChangeHandled() {
+        _favoriteStatusChange.value = null
+    }
+
 }

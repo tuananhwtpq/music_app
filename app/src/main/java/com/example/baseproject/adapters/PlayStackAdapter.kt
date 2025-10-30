@@ -1,7 +1,10 @@
 package com.example.baseproject.adapters
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.recyclerview.widget.RecyclerView
 import com.example.baseproject.R
@@ -13,12 +16,20 @@ class PlayStackAdapter(
     val onDeleteClicked: (MediaItem) -> Unit
 ) : RecyclerView.Adapter<PlayStackAdapter.PlayStackViewHolder>() {
 
+    companion object {
+        const val TAG = "PlayStackAdapter"
+    }
+
     private val trackList = mutableListOf<MediaItem>()
+    private var curentMediaItem: MediaItem? = null
 
     inner class PlayStackViewHolder(private val binding: ItemPlayStackBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        @SuppressLint("ResourceAsColor")
         fun bind(item: MediaItem) {
             binding.tvSongName.text = item.mediaMetadata.title
+
+            val context = binding.root.context
 
             binding.favoriteBtn.setImageResource(
                 if (item.mediaMetadata.extras?.getBoolean("is_favorite") == true) {
@@ -28,15 +39,34 @@ class PlayStackAdapter(
                 }
             )
 
+            Log.d(
+                TAG,
+                "bind: Current Media Item in ViewHolder: ${curentMediaItem?.mediaMetadata?.title}"
+            )
+
+            if (item.mediaId == curentMediaItem?.mediaId) {
+                binding.tvSongName.setTextColor(ContextCompat.getColor(context, R.color.green))
+            } else {
+                binding.tvSongName.setTextColor(ContextCompat.getColor(context, R.color.black))
+
+            }
+
             binding.favoriteBtn.setOnClickListener { onTymClicked(item) }
             binding.deleteBtn.setOnClickListener { onDeleteClicked(item) }
             binding.root.setOnClickListener { onItemClicked(item) }
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun submitData(tracks: List<MediaItem>) {
         trackList.clear()
         trackList.addAll(tracks)
+        notifyDataSetChanged()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setCurrentMediaItem(item: MediaItem) {
+        curentMediaItem = item
         notifyDataSetChanged()
     }
 

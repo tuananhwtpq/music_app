@@ -1,6 +1,5 @@
 package com.example.baseproject.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -31,23 +30,18 @@ class SongAdapter(
                 .placeholder(R.drawable.download)
                 .into(binding.ivSongImage)
 
+            if (item.isFavorite) {
+                binding.btnFavorite.setImageResource(R.drawable.tym_clicked)
+            } else {
+                binding.btnFavorite.setImageResource(R.drawable.hear_btn_2)
+            }
+
             binding.root.setOnClickListener {
                 onSongClick(item)
             }
 
-            //handle favorite toggle
-
             binding.btnFavorite.setOnClickListener {
                 onTymClicked(item)
-
-                item.isFavorite = !item.isFavorite
-                val isFavorite = item.isFavorite
-                Log.d(TAG, "Favorite status for ${item.title}: $isFavorite")
-                if (isFavorite) {
-                    binding.btnFavorite.setImageResource(R.drawable.tym_clicked)
-                } else {
-                    binding.btnFavorite.setImageResource(R.drawable.hear_btn_2)
-                }
             }
 
             binding.btnMore.setOnClickListener {

@@ -30,14 +30,20 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
 
         songAdapter = SongAdapter(
             onSongClick = { song ->
-                Log.d(TAG, "Click item: ${song.title}")
                 if (sharedViewModel.currentTrackPlaying.value != song) {
                     sharedViewModel.selectSong(song)
                 }
                 sharedViewModel.setPlayerSheetVisibility(true)
             },
             onTymClicked = { song ->
-                showToast("Tym bài hát ${song.title} ")
+                val newFavoriteStatus = !song.isFavorite
+                viewModel.updateFavoriteStatus(
+                    song.mediaStoreId,
+                    newFavoriteStatus,
+                    sharedViewModel
+                )
+
+                Log.d(TAG, "Media item change: ${song.mediaStoreId}")
             },
             onMoreClicked = { song ->
                 val trackInfoDialog = TrackInfoFragment.newInstance(song)
@@ -49,12 +55,56 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
             adapter = songAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+
     }
 
     override fun initActionView() {
 
         viewModel.trackList.observe(viewLifecycleOwner) { songs ->
             songAdapter.submitList(songs)
+        }
+
+        binding.layoutPlayBtn.setOnClickListener { handlePlayButton() }
+        binding.layoutShuffleBtn.setOnClickListener { handleShuffleButton() }
+        binding.layoutSortBy.setOnClickListener { handleSortByButton() }
+
+    }
+
+    private fun handleSortByButton() {
+        showToast("Chức năng đang phát triển")
+    }
+
+    private fun handleShuffleButton() {
+        val trackList = viewModel.trackList.value
+
+        if (trackList.isNullOrEmpty()) {
+            showToast("Danh sách bài hát trống")
+            return
+        }
+
+        val shuffleList = trackList.shuffled()
+        val firstTrack = shuffleList[0]
+        sharedViewModel.selectSong(firstTrack)
+        showToast("Đang phát: ${firstTrack.title}")
+    }
+
+    private fun handlePlayButton() {
+        val currentTrack = sharedViewModel.currentTrackPlaying.value
+        val trackList = viewModel.trackList.value
+
+        if (trackList.isNullOrEmpty()) {
+            showToast("Danh sách bài hát trống")
+            return
+        }
+
+        if (currentTrack == null) {
+            val firstTrack = trackList[0]
+            sharedViewModel.selectSong(firstTrack)
+            showToast("Đang phát: ${firstTrack.title}")
+
+        } else {
+            Log.d(TAG, "handlePlayButton: Track is already playing: ${currentTrack.title}")
+
         }
     }
 }

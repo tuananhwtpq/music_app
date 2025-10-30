@@ -33,12 +33,16 @@ import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
 import com.example.baseproject.models.PlayListSongCrossRef
 import com.example.baseproject.models.Track
 import com.example.baseproject.service.MyPlaybackService
+import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
@@ -49,11 +53,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     private lateinit var toggle: ActionBarDrawerToggle
     private var mAdapter: MainViewPagerAdapter? = null
-
     private var mediaController: MediaController? = null
     private lateinit var controllerFeature: ListenableFuture<MediaController>
-
     private val sharedViewModel: MusicSharedViewModel by viewModels()
+    private var isRestoringQueue = false
+
+    private var queueSaveJob: Job? = null
+    private val saveMutex = Mutex()
 
     //region PLAYER LISTENER
     private val playerListener = object : Player.Listener {
@@ -110,7 +116,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun onStart() {
         super.onStart()
-
         initPlayer()
     }
 
@@ -135,22 +140,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             }, MoreExecutors.directExecutor()
         )
     }
+
+    //region SAVE QUEUE TO DATABASE
     private fun saveCurrentQueueToDatabase() {
-        Log.d(TAG, "Save curent queue database")
         val controller = mediaController ?: return
         val currentQueueSize = controller.mediaItemCount
 
+        Log.d(TAG, "Save current queue database")
         Log.d(TAG, "current QueueSize: $currentQueueSize")
 
         if (currentQueueSize == 0) {
-            Log.d(TAG, "Queue is empty, potentially clearing DB.")
+            Log.d(TAG, "Queue is empty, clearing DB.")
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val db = SongsDatabase.getInstance(applicationContext)
                     db.playlistDao().clearPlaylist(MyPlaybackService.PLAY_STACK_ID)
-                    Log.d(TAG, "Cleared empty queue from database.")
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error clearing empty queue from database", e)
+                    Log.e(TAG, "Error clearing empty queue", e)
                 }
             }
             return
@@ -165,51 +171,110 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Coroutine started for saving queue.")
                 val db = SongsDatabase.getInstance(applicationContext)
-                val newQueueCrossRefs = mutableListOf<PlayListSongCrossRef>()
 
-                currentMediaItems.forEachIndexed { index, mediaItem ->
-                    Log.d(TAG, "Processing item $index: extras=${mediaItem.mediaMetadata.extras}")
+                val newQueueCrossRefs = currentMediaItems.mapIndexedNotNull { index, mediaItem ->
                     val mediaStoreId = mediaItem.mediaMetadata.extras?.getLong("mediaStoreId")
+                        ?: return@mapIndexedNotNull null
 
-                    if (mediaStoreId == null) {
-                        Log.w(TAG, "Skipping item $index: mediaStoreId not found in extras.")
-                        return@forEachIndexed
-                    }
-
-                    newQueueCrossRefs.add(
-                        PlayListSongCrossRef(
-                            playListId = MyPlaybackService.PLAY_STACK_ID,
-                            mediaStoreId = mediaStoreId,
-                            orderInPlaylist = index
-                        )
+                    PlayListSongCrossRef(
+                        playListId = MyPlaybackService.PLAY_STACK_ID,
+                        mediaStoreId = mediaStoreId,
+                        orderInPlaylist = index
                     )
                 }
 
-                Log.d(TAG, "Prepared ${newQueueCrossRefs.size} CrossRefs.")
-                db.playlistDao().clearPlaylist(MyPlaybackService.PLAY_STACK_ID)
-
-                Log.d(TAG, "Old queue cleared. Inserting new queue")
                 if (newQueueCrossRefs.isNotEmpty()) {
-                    db.playlistDao().insertAllTracksToPlaylist(newQueueCrossRefs)
+                    db.playlistDao().updatePlaylistTracks(
+                        MyPlaybackService.PLAY_STACK_ID,
+                        newQueueCrossRefs
+                    )
+                    Log.d(TAG, "Successfully saved ${newQueueCrossRefs.size} tracks to queue")
+                }
+
+                val currentQueue =
+                    db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
+                Log.d(TAG, "Current tracks in DB: ${currentQueue.size}")
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving queue", e)
+            }
+        }
+
+
+    }
+
+    //region RESTORE QUEUE FROM DATABASE
+    private fun restoreQueueFromDatabase() {
+        val db = SongsDatabase.getInstance(applicationContext)
+        isRestoringQueue = true
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val crossRefs = db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
+                val totalTracks = db.trackDao().getAllTracksOnce().size
+                val totalCrossRefs =
+                    db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID).size
+                Log.d(TAG, "Found ${crossRefs.size} tracks in saved queue")
+
+                val mediaItemsToAdd = if (crossRefs.isEmpty() || totalCrossRefs < totalTracks) {
                     Log.d(
                         TAG,
-                        "Saved current queue with ${newQueueCrossRefs.size} tracks to database."
+                        "Saved queue is empty or incomplete, loading all tracks from library"
                     )
+                    val allTracks = db.trackDao().getAllTracksOnce()
+                    Log.d(TAG, "Using ${allTracks.size} tracks from library")
+
+                    val initialQueueCrossRefs = allTracks.mapIndexed { index, track ->
+                        PlayListSongCrossRef(
+                            playListId = MyPlaybackService.PLAY_STACK_ID,
+                            mediaStoreId = track.mediaStoreId,
+                            orderInPlaylist = index
+                        )
+                    }
+                    db.playlistDao().clearPlaylist(MyPlaybackService.PLAY_STACK_ID)
+                    db.playlistDao().insertAllTracksToPlaylist(initialQueueCrossRefs)
+
+                    allTracks
                 } else {
-                    Log.w(TAG, "No valid CrossRefs prepared, database queue remains empty.")
+                    val trackIds = crossRefs.map { it.mediaStoreId }
+                    val tracks = db.trackDao().getTracksByIds(trackIds)
+
+                    crossRefs.mapNotNull { crossRef ->
+                        tracks.find { it.mediaStoreId == crossRef.mediaStoreId }
+                    }
+                }
+
+                val items = mediaItemsToAdd.map { track ->
+                    MediaItem.Builder()
+                        .setUri(track.uri)
+                        .setMediaId(track.uri.toString())
+                        .setMediaMetadata(buildMetadataFromSong(track))
+                        .build()
+                }
+
+                withContext(Dispatchers.Main) {
+                    mediaController?.setMediaItems(items)
+                    mediaController?.prepare()
+                    Log.d(TAG, "Restored ${items.size} items to queue")
                 }
 
             } catch (e: Exception) {
-                Log.e(TAG, "Error saving queue to database", e)
+                Log.e(TAG, "Error restoring queue", e)
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isRestoringQueue = false
+                    Log.d(TAG, "Queue restore completed")
+                }
             }
         }
     }
 
+
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
 
+        //handle song selected
         sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
 
             val selectedSongId = selectedSong?.uri.toString()
@@ -250,6 +315,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             }
         }
 
+        //handle player sheet dialog visibility
         sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
 
             val existingSheet = supportFragmentManager.findFragmentByTag(
@@ -259,12 +325,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
             if (isVisible) {
                 if (existingSheet == null || existingSheet.isDetached) {
-                    Log.d(TAG, "Show new sheet")
                     PlayerBottomSheetDialogFragment.newInstance()
                         .show(supportFragmentManager, PlayerBottomSheetDialogFragment.TAG)
                 } else {
                     if (existingSheet.dialog == null || !existingSheet.dialog!!.isShowing) {
-                        Log.d(TAG, "Show existing sheet")
                         existingSheet.show(
                             supportFragmentManager,
                             PlayerBottomSheetDialogFragment.TAG
@@ -274,9 +338,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
             } else {
                 existingSheet?.dismissAllowingStateLoss()
-                Log.d(TAG, "Dismiss sheet")
             }
-
             updateMiniPlayerVisibility(
                 mediaController?.playbackState ?: Player.STATE_IDLE,
                 isVisible
@@ -284,6 +346,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
         }
 
+        //handle add track to queue
         sharedViewModel.trackAddToQueue.observe(this) { track ->
             if (track == null) return@observe
 
@@ -297,83 +360,77 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             mediaController?.addMediaItem(mediaItem)
 
             lifecycleScope.launch(Dispatchers.IO) {
-                val db = SongsDatabase.getInstance(applicationContext)
 
-                val queueItem = PlayListSongCrossRef(
-                    playListId = MyPlaybackService.PLAY_STACK_ID,
-                    mediaStoreId = track.mediaStoreId,
-                    orderInPlaylist = currentQueueSize,
-                )
+                try {
 
-                db.playlistDao().addTrackToPlaylist(queueItem)
+                    val db = SongsDatabase.getInstance(applicationContext)
+
+                    db.trackDao().insertTrack(track)
+                    val insertedTrack = db.trackDao().getTracksByIds(listOf(track.mediaStoreId))
+                    if (insertedTrack.isEmpty()) {
+                        Log.d(TAG, "Error inserting track into DB")
+                        return@launch
+                    }
+
+
+                    val queueItem = PlayListSongCrossRef(
+                        playListId = MyPlaybackService.PLAY_STACK_ID,
+                        mediaStoreId = track.mediaStoreId,
+                        orderInPlaylist = currentQueueSize,
+                    )
+
+                    db.playlistDao().addTrackToPlaylist(queueItem)
+                    Log.d(TAG, "Added ${track.title} to DB queue at index ${currentQueueSize - 1}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error adding track to queue $e.message")
+                }
+
             }
 
             sharedViewModel.handleTrackAddedToQueue()
         }
 
-    }
+        //handle favorite status change
+        sharedViewModel.favoriteStatusChange.observe(this) { isFavorite ->
+            if (isFavorite == null) return@observe
 
-    private fun restoreQueueFromDatabase() {
-        val db = SongsDatabase.getInstance(applicationContext)
+            try {
+                val mediaItemId = isFavorite.first
+                val favoriteStatus = isFavorite.second
+                val controller = mediaController ?: return@observe
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            val crossRefs = db.playlistDao().getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
+                Log.d(TAG, "Mediaitem id: $mediaItemId")
 
-            val mediaItemsToAdd: List<MediaItem>
+                for (i in 0 until controller.mediaItemCount) {
+                    val mediaItem = controller.getMediaItemAt(i)
+                    val itemExtras = mediaItem.mediaMetadata.extras
+                    val mediaStoreId = itemExtras?.getLong("mediaStoreId", -1L)
 
-            if (crossRefs.isEmpty()) {
-                Log.d(TAG, "Saved queue is empty. Populating with all tracks.")
+                    if (mediaStoreId == mediaItemId) {
+                        val newExtras = Bundle(itemExtras).apply {
+                            putBoolean("is_favorite", favoriteStatus)
+                        }
 
-                val allTracks = db.trackDao().getAllTracksOnce()
+                        val newMetaData = mediaItem.mediaMetadata.buildUpon()
+                            .setExtras(newExtras)
+                            .build()
 
-                if (allTracks.isEmpty()) {
-                    Log.d(TAG, "No tracks found in database to populate queue.")
-                    return@launch
+                        val newItem = mediaItem.buildUpon().setMediaMetadata(newMetaData).build()
+                        controller.replaceMediaItem(i, newItem)
+
+                        val changeMediaItem = controller.getMediaItemAt(i)
+                        Log.d(
+                            TAG,
+                            "Change item info: ${changeMediaItem.mediaMetadata.extras?.getBoolean("is_favorite")}"
+                        )
+                        Log.d(TAG, "Change favorite successfully")
+                    }
                 }
-
-                val initialQueueCrossRefs = allTracks.mapIndexed { index, track ->
-                    PlayListSongCrossRef(
-                        playListId = MyPlaybackService.PLAY_STACK_ID,
-                        mediaStoreId = track.mediaStoreId,
-                        orderInPlaylist = index
-                    )
-                }
-
-                db.playlistDao().insertAllTracksToPlaylist(initialQueueCrossRefs)
-
-                mediaItemsToAdd = allTracks.map { track ->
-                    MediaItem.Builder()
-                        .setUri(track.uri)
-                        .setMediaId(track.uri.toString())
-                        .setMediaMetadata(buildMetadataFromSong(track))
-                        .build()
-                }
-                Log.d(TAG, "Prepared initial queue with ${mediaItemsToAdd.size} tracks.")
-
-            } else {
-                Log.d(TAG, "Restoring saved queue with ${crossRefs.size} entries.")
-                val trackIds = crossRefs.map { it.mediaStoreId }
-                val tracksMap =
-                    db.trackDao().getTracksByIds(trackIds).associateBy { it.mediaStoreId }
-                val sortedTracks =
-                    crossRefs.mapNotNull { crossRef -> tracksMap[crossRef.mediaStoreId] }
-
-                mediaItemsToAdd = sortedTracks.map { track ->
-                    MediaItem.Builder()
-                        .setUri(track.uri)
-                        .setMediaId(track.uri.toString())
-                        .setMediaMetadata(buildMetadataFromSong(track))
-                        .build()
-                }
+                sharedViewModel.onFavoriteChangeHandled()
+            } catch (e: Exception) {
+                Log.d(TAG, "Error change favorite: ${e.message}")
             }
 
-            if (mediaItemsToAdd.isNotEmpty()) {
-                withContext(Dispatchers.Main) {
-                    mediaController?.addMediaItems(mediaItemsToAdd)
-                    mediaController?.prepare()
-                    Log.d(TAG, "Added ${mediaItemsToAdd.size} items to MediaController queue.")
-                }
-            }
         }
     }
 
@@ -399,18 +456,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         binding.miniPlayer.nextSongBtn.setOnClickListener {
             Log.d(TAG, "Next song clicked")
             sharedViewModel.mediaController.value?.seekToNextMediaItem()
+
+            val currentQueueSize = sharedViewModel.mediaController.value?.mediaItemCount ?: 0
+            Log.d(TAG, "Current queue size: $currentQueueSize")
+            Log.d(
+                TAG,
+                "Current media index: ${sharedViewModel.mediaController.value?.currentMediaItemIndex}"
+            )
+            if (currentQueueSize == sharedViewModel.mediaController.value?.currentMediaItemIndex?.plus(
+                    1
+                )
+            ) {
+                showToast("This is the last song in the queue")
+            }
         }
     }
 
-    //    private fun buildMetadataFromSong(track: Track?): MediaMetadata {
-//        return MediaMetadata.Builder()
-//            .setTitle(track?.title)
-//            .setArtist(track?.artist)
-//            .setAlbumTitle(track?.album)
-//            .setArtworkUri(track?.albumArtUri)
-//            .build()
-//
-//    }
     private fun buildMetadataFromSong(track: Track?): MediaMetadata {
         val extras = Bundle().apply {
             track?.mediaStoreId?.let { putLong("mediaStoreId", it) }
@@ -580,7 +641,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun onDestroy() {
         super.onDestroy()
-        saveCurrentQueueToDatabase()
         Log.d(TAG, "OnDestroy")
     }
 
@@ -615,10 +675,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
     override fun onStop() {
         super.onStop()
-        Log.d(TAG, "Onstop")
+        Log.d(TAG, "Onstop: Saving current queue zie: ${mediaController?.mediaItemCount}")
+        queueSaveJob?.cancel()
         saveCurrentQueueToDatabase()
-        mediaController?.removeListener(playerListener)
-        MediaController.releaseFuture(controllerFeature)
+        lifecycleScope.launch {
+            delay(500)
+            mediaController?.removeListener(playerListener)
+            MediaController.releaseFuture(controllerFeature)
+        }
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
