@@ -8,12 +8,6 @@ import kotlinx.coroutines.withContext
 
 class PlaylistRepository(private val playlistDao: PlaylistDao, private val context: Context) {
 
-//    suspend fun getAllPlayLists() {
-//        withContext(Dispatchers.IO) {
-//            playlistDao.getAllPlayLists()
-//        }
-//    }
-
     suspend fun addTrackToPlayList(crossRef: PlayListSongCrossRef) {
         withContext(Dispatchers.IO) {
             playlistDao.addTrackToPlaylist(crossRef)

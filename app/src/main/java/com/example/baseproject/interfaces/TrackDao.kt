@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface TrackDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTrackToPlayStack(track: Track)
+    suspend fun insertTrack(track: Track)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tracks: List<Track>)

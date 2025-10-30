@@ -7,9 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.Glide
+import com.example.baseproject.R
 import com.example.baseproject.databinding.FragmentTrackInfoBinding
 import com.example.baseproject.models.Track
 import com.example.baseproject.utils.ex.showToast
+import com.example.baseproject.utils.ex.toMediaItem
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -59,6 +61,7 @@ class TrackInfoFragment : BottomSheetDialogFragment() {
 
             Glide.with(requireContext())
                 .load(it.albumArtUri)
+                .placeholder(R.drawable.download)
                 .into(binding.tvSongImage)
         }
 
@@ -71,6 +74,25 @@ class TrackInfoFragment : BottomSheetDialogFragment() {
                 }
                 dismiss()
             }
+        }
+
+        binding.layoutPlayNext.setOnClickListener {
+            currentTrack?.let { track ->
+                sharedViewModel.mediaController.value?.let { controller ->
+                    val currentQueueSize = controller.mediaItemCount
+                    val mediaItem = track.toMediaItem()
+
+                    val targetIndex = if (currentQueueSize > 0) 1 else 0
+                    controller.addMediaItems(targetIndex, listOf(mediaItem))
+                    showToast("Will play next: ${track.title}")
+                    Log.d(
+                        TAG,
+                        "onViewCreated: Will play next: ${track.title} at index $targetIndex"
+                    )
+                    dismiss()
+                }
+            }
+
         }
     }
 

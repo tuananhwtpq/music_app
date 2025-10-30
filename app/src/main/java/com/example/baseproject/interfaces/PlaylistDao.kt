@@ -16,16 +16,13 @@ interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlayList(playlist: Playlist)
 
-//    @Query("SELECT * FROM playlists")
-//    suspend fun getAllPlayLists(): Flow<List<Playlist>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addTrackToPlaylist(crossRef: PlayListSongCrossRef)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllTracksToPlaylist(crossRefs: List<PlayListSongCrossRef>)
 
-    @Query("SELECT * FROM playlist_song_cross_ref WHERE play_list_id = :playlistId")
+    @Query("SELECT * FROM playlist_song_cross_ref WHERE play_list_id = :playlistId ORDER BY order_in_playlist ASC")
     suspend fun getQueueCrossRef(playlistId: Long): List<PlayListSongCrossRef>
 
     @Query("DELETE FROM playlist_song_cross_ref WHERE play_list_id = :playlistId AND media_store_id = :mediaStoreId")
@@ -51,4 +48,10 @@ interface PlaylistDao {
 
     @Query("DELETE FROM playlist_song_cross_ref WHERE play_list_id = :playlistId")
     suspend fun clearPlaylist(playlistId: Long)
+
+    @Transaction
+    suspend fun updatePlaylistTracks(playlistId: Long, tracks: List<PlayListSongCrossRef>) {
+        clearPlaylist(playlistId)
+        insertAllTracksToPlaylist(tracks)
+    }
 }

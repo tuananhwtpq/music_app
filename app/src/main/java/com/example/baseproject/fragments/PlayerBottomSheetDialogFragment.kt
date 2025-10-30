@@ -2,7 +2,6 @@ package com.example.baseproject.fragments
 
 import android.content.ComponentName
 import android.content.DialogInterface
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -49,7 +48,6 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //initPLayer()
         initController()
         observedSharedViewModel()
     }
@@ -65,7 +63,6 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
         }
     }
 
-
     override fun onDismiss(dialog: DialogInterface) {
         sharedViewModel.setPlayerSheetVisibility(false)
         sharedViewModel.setPlayerSheetVisibility(false)
@@ -77,12 +74,6 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
         if (dialog?.isShowing == true) {
             dialog?.hide()
         }
-    }
-
-    private fun initPLayer() {
-
-        val serviceIntent = Intent(requireContext(), MyPlaybackService::class.java)
-        requireContext().startService(serviceIntent)
     }
 
     private fun initController() {

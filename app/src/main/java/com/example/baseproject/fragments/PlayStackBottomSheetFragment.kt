@@ -58,6 +58,9 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                 queue.add(item)
             }
 
+            playStackAdapter.setCurrentMediaItem(controller.currentMediaItem!!)
+            Log.d(TAG, "CurrentMediaItem: ${controller.currentMediaItem!!.mediaMetadata.title}")
+
             playStackAdapter.submitData(queue)
 
             controller.addListener(object : Player.Listener {
@@ -69,8 +72,16 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                         val item = controller.getMediaItemAt(i)
                         updatedQueue.add(item)
                     }
-
                     playStackAdapter.submitData(updatedQueue)
+                }
+
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    super.onMediaItemTransition(mediaItem, reason)
+                    mediaItem?.let {
+                        playStackAdapter.setCurrentMediaItem(it)
+                    }
+                    Log.d(TAG, "CurrentMediaItem change: ${mediaItem?.mediaMetadata?.title}")
+
                 }
             })
         }
@@ -105,6 +116,10 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                 } ?: 0
 
                 sharedViewModel.mediaController.value?.seekTo(mediaItemIndex, 0L)
+                sharedViewModel.mediaController.value?.prepare()
+                sharedViewModel.mediaController.value?.play()
+
+
                 Log.d(
                     TAG,
                     "onItemClicked: Seek to index $mediaItemIndex - Item title: ${mediaItem.mediaMetadata.title}"

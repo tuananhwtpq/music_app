@@ -99,7 +99,7 @@ class TrackRepository(
 
     suspend fun addTrackToPlayStack(track: Track) {
         withContext(Dispatchers.IO) {
-            trackDao.insertTrackToPlayStack(track)
+            trackDao.insertTrack(track)
         }
     }
 
