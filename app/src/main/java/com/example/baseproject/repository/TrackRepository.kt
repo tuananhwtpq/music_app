@@ -22,6 +22,9 @@ class TrackRepository(
     suspend fun asyncDataFromMediaStore() {
         withContext(Dispatchers.IO) {
 
+            val existingTrackMap = trackDao.getAllTracksOnce()
+                .associateBy { it.mediaStoreId }
+
             val trackList = mutableListOf<Track>()
 
             val projection = arrayOf(
@@ -47,12 +50,16 @@ class TrackRepository(
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
+
                 while (cursor.moveToNext()) {
                     val id = cursor.getLong(idColumn)
                     val title = cursor.getString(titleColumn)
                     val artist = cursor.getString(artistColumn)
                     val duration = cursor.getLong(durationColumn)
                     val albumId = cursor.getLong(albumIdColumn)
+
+                    val existingTrack = existingTrackMap[id]
+                    val isFavorite = existingTrack?.isFavorite ?: false
 
                     val contentUri = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id
@@ -72,7 +79,7 @@ class TrackRepository(
                             albumArtUri = albumArtUri,
                             album = null,
                             genre = null,
-                            isFavorite = false,
+                            isFavorite = isFavorite,
                             dateAdded = null,
                             year = null,
                         )
@@ -80,20 +87,6 @@ class TrackRepository(
                 }
             }
             trackDao.insertAll(trackList)
-
-//            val currentQueue = playlistDao.getQueueCrossRef(MyPlaybackService.PLAY_STACK_ID)
-//
-//            if (currentQueue.isNotEmpty() && trackList.isNotEmpty()) {
-//                val updateQueue = trackList.mapIndexed { index, track ->
-//                    PlayListSongCrossRef(
-//                        playListId = MyPlaybackService.PLAY_STACK_ID,
-//                        mediaStoreId = track.mediaStoreId,
-//                        orderInPlaylist = index
-//                    )
-//                }
-//
-//                playlistDao.insertAllTracksToPlaylist(updateQueue)
-//            }
         }
     }
 

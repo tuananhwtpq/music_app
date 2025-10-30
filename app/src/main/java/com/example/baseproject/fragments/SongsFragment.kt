@@ -42,6 +42,8 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
                     newFavoriteStatus,
                     sharedViewModel
                 )
+
+                Log.d(TAG, "Media item change: ${song.mediaStoreId}")
             },
             onMoreClicked = { song ->
                 val trackInfoDialog = TrackInfoFragment.newInstance(song)

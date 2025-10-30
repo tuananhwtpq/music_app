@@ -394,29 +394,43 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         sharedViewModel.favoriteStatusChange.observe(this) { isFavorite ->
             if (isFavorite == null) return@observe
 
-            val mediaItemId = isFavorite.first
-            val favoriteStatus = isFavorite.second
-            val controller = mediaController ?: return@observe
+            try {
+                val mediaItemId = isFavorite.first
+                val favoriteStatus = isFavorite.second
+                val controller = mediaController ?: return@observe
 
-            for (i in 0 until controller.mediaItemCount) {
-                val mediaItem = controller.getMediaItemAt(i)
-                val itemExtras = mediaItem.mediaMetadata.extras
-                val mediaStoreId = itemExtras?.getLong("mediaStoreId", -1L)
+                Log.d(TAG, "Mediaitem id: $mediaItemId")
 
-                if (mediaStoreId == mediaItemId) {
-                    val newExtras = Bundle(itemExtras).apply {
-                        putBoolean("is_favorite", favoriteStatus)
+                for (i in 0 until controller.mediaItemCount) {
+                    val mediaItem = controller.getMediaItemAt(i)
+                    val itemExtras = mediaItem.mediaMetadata.extras
+                    val mediaStoreId = itemExtras?.getLong("mediaStoreId", -1L)
+
+                    if (mediaStoreId == mediaItemId) {
+                        val newExtras = Bundle(itemExtras).apply {
+                            putBoolean("is_favorite", favoriteStatus)
+                        }
+
+                        val newMetaData = mediaItem.mediaMetadata.buildUpon()
+                            .setExtras(newExtras)
+                            .build()
+
+                        val newItem = mediaItem.buildUpon().setMediaMetadata(newMetaData).build()
+                        controller.replaceMediaItem(i, newItem)
+
+                        val changeMediaItem = controller.getMediaItemAt(i)
+                        Log.d(
+                            TAG,
+                            "Change item info: ${changeMediaItem.mediaMetadata.extras?.getBoolean("is_favorite")}"
+                        )
+                        Log.d(TAG, "Change favorite successfully")
                     }
-
-                    val newMetaData = mediaItem.mediaMetadata.buildUpon()
-                        .setExtras(newExtras)
-                        .build()
-
-                    val newItem = mediaItem.buildUpon().setMediaMetadata(newMetaData).build()
-                    controller.replaceMediaItem(i, newItem)
                 }
+                sharedViewModel.onFavoriteChangeHandled()
+            } catch (e: Exception) {
+                Log.d(TAG, "Error change favorite: ${e.message}")
             }
-            sharedViewModel.onFavoriteChangeHandled()
+
         }
     }
 
