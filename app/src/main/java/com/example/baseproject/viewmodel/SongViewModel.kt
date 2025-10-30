@@ -37,4 +37,15 @@ class SongViewModel(application: Application) : AndroidViewModel(application) {
             trackRepository.addTrackToPlayStack(track)
         }
     }
+
+    fun updateFavoriteStatus(
+        trackId: Long,
+        isFavorite: Boolean,
+        sharedViewModel: MusicSharedViewModel
+    ) {
+        viewModelScope.launch {
+            trackRepository.updateFavoriteStatus(trackId, isFavorite)
+            sharedViewModel.onFavoriteChanged(trackId, isFavorite)
+        }
+    }
 }

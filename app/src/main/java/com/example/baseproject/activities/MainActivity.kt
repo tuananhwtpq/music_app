@@ -274,6 +274,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
 
+        //handle song selected
         sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
 
             val selectedSongId = selectedSong?.uri.toString()
@@ -314,6 +315,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             }
         }
 
+        //handle player sheet dialog visibility
         sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
 
             val existingSheet = supportFragmentManager.findFragmentByTag(
@@ -343,6 +345,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             )
 
         }
+
+        //handle add track to queue
         sharedViewModel.trackAddToQueue.observe(this) { track ->
             if (track == null) return@observe
 
@@ -386,6 +390,34 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             sharedViewModel.handleTrackAddedToQueue()
         }
 
+        //handle favorite status change
+        sharedViewModel.favoriteStatusChange.observe(this) { isFavorite ->
+            if (isFavorite == null) return@observe
+
+            val mediaItemId = isFavorite.first
+            val favoriteStatus = isFavorite.second
+            val controller = mediaController ?: return@observe
+
+            for (i in 0 until controller.mediaItemCount) {
+                val mediaItem = controller.getMediaItemAt(i)
+                val itemExtras = mediaItem.mediaMetadata.extras
+                val mediaStoreId = itemExtras?.getLong("mediaStoreId", -1L)
+
+                if (mediaStoreId == mediaItemId) {
+                    val newExtras = Bundle(itemExtras).apply {
+                        putBoolean("is_favorite", favoriteStatus)
+                    }
+
+                    val newMetaData = mediaItem.mediaMetadata.buildUpon()
+                        .setExtras(newExtras)
+                        .build()
+
+                    val newItem = mediaItem.buildUpon().setMediaMetadata(newMetaData).build()
+                    controller.replaceMediaItem(i, newItem)
+                }
+            }
+            sharedViewModel.onFavoriteChangeHandled()
+        }
     }
 
     //region MINI PLAYER CLICKED

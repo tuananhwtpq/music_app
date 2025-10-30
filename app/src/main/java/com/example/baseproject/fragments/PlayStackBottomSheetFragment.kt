@@ -118,8 +118,6 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                 sharedViewModel.mediaController.value?.seekTo(mediaItemIndex, 0L)
                 sharedViewModel.mediaController.value?.prepare()
                 sharedViewModel.mediaController.value?.play()
-
-
                 Log.d(
                     TAG,
                     "onItemClicked: Seek to index $mediaItemIndex - Item title: ${mediaItem.mediaMetadata.title}"

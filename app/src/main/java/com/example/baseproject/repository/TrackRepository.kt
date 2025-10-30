@@ -103,4 +103,10 @@ class TrackRepository(
         }
     }
 
+    suspend fun updateFavoriteStatus(trackId: Long, isFavorite: Boolean) {
+        withContext(Dispatchers.IO) {
+            trackDao.updateFavoriteStatus(trackId, isFavorite)
+        }
+    }
+
 }

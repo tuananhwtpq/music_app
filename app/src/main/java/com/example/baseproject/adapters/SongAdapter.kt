@@ -35,8 +35,6 @@ class SongAdapter(
                 onSongClick(item)
             }
 
-            //handle favorite toggle
-
             binding.btnFavorite.setOnClickListener {
                 onTymClicked(item)
 
