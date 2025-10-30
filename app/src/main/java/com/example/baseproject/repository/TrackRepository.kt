@@ -35,7 +35,8 @@ class TrackRepository(
                 MediaStore.Audio.Media.ALBUM_ID
             )
 
-            val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+            val selection =
+                "${MediaStore.Audio.Media.IS_MUSIC} && ${MediaStore.Audio.Media.IS_RINGTONE} && ${MediaStore.Audio.Media.IS_RECORDING} != 0"
 
             context.contentResolver.query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
