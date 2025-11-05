@@ -12,6 +12,7 @@ import androidx.media3.common.Timeline
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.baseproject.adapters.PlayStackAdapter
 import com.example.baseproject.databinding.FragmentPlayStackBottomSheetBinding
+import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -45,6 +46,13 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
 
         setupAdapter()
         setupViewModel()
+        handleButton()
+    }
+
+    private fun handleButton() {
+        binding.ivAddBtn.setOnClickListener { showToast("Đang phát triển") }
+
+        binding.ivDeleteBtn.setOnClickListener { showToast("Đang phát triển") }
     }
 
     private fun setupViewModel() {

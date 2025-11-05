@@ -89,6 +89,7 @@ class SongsFragment : BaseFragment<FragmentSongsBinding>(FragmentSongsBinding::i
     }
 
     private fun handlePlayButton() {
+        Log.d(TAG, "handlePlayButton: onclicked")
         val currentTrack = sharedViewModel.currentTrackPlaying.value
         val trackList = viewModel.trackList.value
 

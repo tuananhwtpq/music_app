@@ -14,6 +14,12 @@ class PlaylistRepository(private val playlistDao: PlaylistDao, private val conte
         }
     }
 
+    suspend fun insertNewPLaylist(playlistName: String) {
+        withContext(Dispatchers.IO) {
+            playlistDao.insertPlayList()
+        }
+    }
+
     suspend fun removeTrackFromPlaylist(playlistId: Long, mediaStoreId: Long) {
         withContext(Dispatchers.IO) {
             playlistDao.removeTrackFromPlaylist(playlistId, mediaStoreId)

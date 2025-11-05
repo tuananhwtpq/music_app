@@ -590,6 +590,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 binding.drawerLayout.openDrawer(GravityCompat.START)
             }
         }
+
+        btnSearch.setOnClickListener {
+            showToast("Đang phát triển")
+        }
     }
 
     //region SETUP DRAWER LAYOUT

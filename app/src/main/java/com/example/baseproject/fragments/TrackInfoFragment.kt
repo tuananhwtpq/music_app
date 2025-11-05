@@ -94,6 +94,14 @@ class TrackInfoFragment : BottomSheetDialogFragment() {
             }
 
         }
+
+        binding.layoutAddToPlaylist.setOnClickListener {
+            showToast("Đang phát triển")
+        }
+
+        binding.layoutAddToRingtone.setOnClickListener { showToast("Đang phát triển") }
+
+
     }
 
     override fun onDestroyView() {

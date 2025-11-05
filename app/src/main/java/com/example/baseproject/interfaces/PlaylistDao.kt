@@ -33,7 +33,7 @@ interface PlaylistDao {
 
     @Transaction
     @Query("SELECT * FROM PLAYLISTS")
-    fun getPlayListWithTracks(): List<PlaylistWithTracks>
+    fun getPlayListWithTracks(): Flow<List<PlaylistWithTracks>>
 
     @Query("SELECT * FROM tracks WHERE media_store_id IN (:trackIds)")
     suspend fun getTracksByIds(trackIds: List<Long>): List<Track>
