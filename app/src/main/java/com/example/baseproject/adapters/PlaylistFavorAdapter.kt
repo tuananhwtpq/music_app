@@ -30,9 +30,11 @@ class PlaylistFavorAdapter(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun submitData(data: List<PlaylistWithTracks>) {
+    fun submitData(data: List<PlaylistWithTracks>?) {
         playlistList.clear()
-        playlistList.addAll(data)
+        if (data != null) {
+            playlistList.addAll(data)
+        }
         notifyDataSetChanged()
     }
 
@@ -51,5 +53,5 @@ class PlaylistFavorAdapter(
         return holder.bind(playlistList[position])
     }
 
-    override fun getItemCount(): Int = 4
+    override fun getItemCount(): Int = playlistList.size
 }

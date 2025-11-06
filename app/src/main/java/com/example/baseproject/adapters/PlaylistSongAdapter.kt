@@ -24,7 +24,10 @@ class PlaylistSongAdapter(
         fun bind(item: PlaylistWithTracks) {
 
             binding.tvPlaylistName.text = item.playlist.name
-            binding.tvPlaylistSongCount.text = (item.tracks.size).toString()
+
+            val count = item.tracks.size
+
+            binding.tvPlaylistSongCount.text = "$count songs"
             Glide.with(binding.root)
                 .load(item.playlist.albumArtUri)
                 .placeholder(R.drawable.download)
@@ -40,9 +43,11 @@ class PlaylistSongAdapter(
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun submitData(list: List<PlaylistWithTracks>) {
+    fun submitData(list: List<PlaylistWithTracks>?) {
         songLists.clear()
-        songLists.addAll(list)
+        if (list != null) {
+            songLists.addAll(list)
+        }
         notifyDataSetChanged()
     }
 

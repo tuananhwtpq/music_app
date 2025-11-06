@@ -11,7 +11,7 @@ import kotlinx.parcelize.Parcelize
 @Entity(tableName = "playlists")
 data class Playlist(
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo("play_list_id") val playListId: Long,
+    @ColumnInfo("play_list_id") val playListId: Long = 0L,
     @ColumnInfo("name") var name: String,
     @ColumnInfo("album_art_uri") var albumArtUri: Uri? = null,
     @ColumnInfo("is_pin") var isPin: Boolean? = false,

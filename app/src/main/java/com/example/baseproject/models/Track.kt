@@ -23,7 +23,7 @@ data class Track(
     @ColumnInfo("uri") val uri: Uri,
     @ColumnInfo("album_art_uri") var albumArtUri: Uri?,
     @ColumnInfo("is_favorite") var isFavorite: Boolean = false,
-    @ColumnInfo("date_added") var dateAdded: String? = null,
+    @ColumnInfo("date_added") var dateAdded: Long? = null,
     @ColumnInfo("year") var year: Int? = null,
 ) : Parcelable, ListItem()
 

@@ -550,12 +550,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             when (position) {
                 0 -> {
                     tab.text = "Songs"
-                    tab.setIcon(R.drawable.outline_ad_24)
+                    tab.setIcon(R.drawable.song)
                 }
 
                 1 -> {
                     tab.text = "Playlists"
-                    tab.setIcon(R.drawable.outline_ad_24)
+                    tab.setIcon(R.drawable.playlist)
                 }
 
                 2 -> {
@@ -565,12 +565,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
                 3 -> {
                     tab.text = "Library"
-                    tab.setIcon(R.drawable.outline_ad_24)
+                    tab.setIcon(R.drawable.library)
                 }
 
                 4 -> {
                     tab.text = "Folders"
-                    tab.setIcon(R.drawable.outline_ad_24)
+                    tab.setIcon(R.drawable.folder)
                 }
             }
         }.attach()

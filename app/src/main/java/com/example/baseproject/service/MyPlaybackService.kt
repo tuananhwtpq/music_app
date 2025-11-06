@@ -8,7 +8,7 @@ import androidx.media3.session.MediaSessionService
 class MyPlaybackService : MediaSessionService() {
 
     companion object {
-        const val PLAY_STACK_ID = 1L
+        const val PLAY_STACK_ID = -10L
     }
 
     private var mediaSession: MediaSession? = null

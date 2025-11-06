@@ -32,7 +32,8 @@ class TrackRepository(
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.ALBUM_ID
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.DATE_ADDED
             )
 
             val selection =
@@ -50,6 +51,7 @@ class TrackRepository(
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
 
 
                 while (cursor.moveToNext()) {
@@ -58,6 +60,7 @@ class TrackRepository(
                     val artist = cursor.getString(artistColumn)
                     val duration = cursor.getLong(durationColumn)
                     val albumId = cursor.getLong(albumIdColumn)
+                    val dateAdded = cursor.getLong(dateAddedColumn)
 
                     val existingTrack = existingTrackMap[id]
                     val isFavorite = existingTrack?.isFavorite ?: false
@@ -81,7 +84,7 @@ class TrackRepository(
                             album = null,
                             genre = null,
                             isFavorite = isFavorite,
-                            dateAdded = null,
+                            dateAdded = dateAdded,
                             year = null,
                         )
                     )
@@ -100,6 +103,18 @@ class TrackRepository(
     suspend fun updateFavoriteStatus(trackId: Long, isFavorite: Boolean) {
         withContext(Dispatchers.IO) {
             trackDao.updateFavoriteStatus(trackId, isFavorite)
+        }
+    }
+
+    suspend fun getFavoriteTracks(): List<Track> {
+        return withContext(Dispatchers.IO) {
+            trackDao.getFavoriteTracks()
+        }
+    }
+
+    suspend fun getRecentlyAddedTracks(): List<Track> {
+        return withContext(Dispatchers.IO) {
+            trackDao.getRecentlyAddedTracks()
         }
     }
 
