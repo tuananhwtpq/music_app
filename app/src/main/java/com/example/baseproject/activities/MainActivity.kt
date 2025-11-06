@@ -59,28 +59,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private var isRestoringQueue = false
 
     private var queueSaveJob: Job? = null
-    private val saveMutex = Mutex()
-
-    //region PLAYER LISTENER
-    private val playerListener = object : Player.Listener {
-        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-            super.onMediaMetadataChanged(mediaMetadata)
-            updateMiniPlayerMetadata(mediaMetadata)
-        }
-
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            super.onIsPlayingChanged(isPlaying)
-            updateMiniPlayerPlayPause(isPlaying)
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            super.onPlaybackStateChanged(playbackState)
-
-            val isSheetVisible = sharedViewModel.isPlayerSheetVisible.value ?: false
-
-            updateMiniPlayerVisibility(playbackState, isSheetVisible = isSheetVisible)
-        }
-    }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -133,9 +111,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 sharedViewModel.setMediaController(mediaController)
 
                 restoreQueueFromDatabase()
-
-                mediaController?.addListener(playerListener)
-                updateUiFromController(mediaController)
 
             }, MoreExecutors.directExecutor()
         )
@@ -275,45 +250,45 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     private fun observedSharedViewModel() {
 
         //handle song selected
-        sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
-
-            val selectedSongId = selectedSong?.uri.toString()
-            val currentMediaId = mediaController?.currentMediaItem?.mediaId
-
-            if (selectedSongId == currentMediaId) {
-                if (mediaController?.isPlaying == true) {
-                    mediaController?.pause()
-                } else {
-                    mediaController?.play()
-                }
-                return@observe
-            }
-
-            var foundIndex = -1
-
-            for (i in 0 until (mediaController?.mediaItemCount ?: 0)) {
-                val item = mediaController?.getMediaItemAt(i)
-                if (item?.mediaId == selectedSongId) {
-                    foundIndex = i
-                    break
-                }
-            }
-            if (foundIndex != -1) {
-                mediaController?.seekTo(foundIndex, 0L)
-                mediaController?.prepare()
-                mediaController?.play()
-            } else {
-                val mediaItem = MediaItem.Builder()
-                    .setUri(selectedSong?.uri)
-                    .setMediaId(selectedSongId)
-                    .setMediaMetadata(buildMetadataFromSong(selectedSong))
-                    .build()
-
-                mediaController?.setMediaItem(mediaItem)
-                mediaController?.prepare()
-                mediaController?.play()
-            }
-        }
+//        sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
+//
+//            val selectedSongId = selectedSong?.uri.toString()
+//            val currentMediaId = mediaController?.currentMediaItem?.mediaId
+//
+//            if (selectedSongId == currentMediaId) {
+//                if (mediaController?.isPlaying == true) {
+//                    mediaController?.pause()
+//                } else {
+//                    mediaController?.play()
+//                }
+//                return@observe
+//            }
+//
+//            var foundIndex = -1
+//
+//            for (i in 0 until (mediaController?.mediaItemCount ?: 0)) {
+//                val item = mediaController?.getMediaItemAt(i)
+//                if (item?.mediaId == selectedSongId) {
+//                    foundIndex = i
+//                    break
+//                }
+//            }
+//            if (foundIndex != -1) {
+//                mediaController?.seekTo(foundIndex, 0L)
+//                mediaController?.prepare()
+//                mediaController?.play()
+//            } else {
+//                val mediaItem = MediaItem.Builder()
+//                    .setUri(selectedSong?.uri)
+//                    .setMediaId(selectedSongId)
+//                    .setMediaMetadata(buildMetadataFromSong(selectedSong))
+//                    .build()
+//
+//                mediaController?.setMediaItem(mediaItem)
+//                mediaController?.prepare()
+//                mediaController?.play()
+//            }
+//        }
 
         //handle player sheet dialog visibility
         sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
@@ -339,11 +314,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             } else {
                 existingSheet?.dismissAllowingStateLoss()
             }
-            updateMiniPlayerVisibility(
-                mediaController?.playbackState ?: Player.STATE_IDLE,
-                isVisible
-            )
-
         }
 
         //handle add track to queue
@@ -434,44 +404,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-    //region MINI PLAYER CLICKED
-    private fun handleMiniPlayerItemClicked() {
-        binding.miniPlayer.playPauseBtn.setOnClickListener {
-            if (mediaController?.isPlaying == true) {
-                mediaController?.pause()
-            } else {
-                mediaController?.play()
-            }
-        }
-
-        binding.miniPlayer.root.setOnClickListener {
-            sharedViewModel.setPlayerSheetVisibility(true)
-        }
-
-        binding.miniPlayer.playStackBtn.setOnClickListener {
-            val playStackSheet = PlayStackBottomSheetFragment.newInstance()
-            playStackSheet.show(supportFragmentManager, PlayStackBottomSheetFragment.TAG)
-        }
-
-        binding.miniPlayer.nextSongBtn.setOnClickListener {
-            Log.d(TAG, "Next song clicked")
-            sharedViewModel.mediaController.value?.seekToNextMediaItem()
-
-            val currentQueueSize = sharedViewModel.mediaController.value?.mediaItemCount ?: 0
-            Log.d(TAG, "Current queue size: $currentQueueSize")
-            Log.d(
-                TAG,
-                "Current media index: ${sharedViewModel.mediaController.value?.currentMediaItemIndex}"
-            )
-            if (currentQueueSize == sharedViewModel.mediaController.value?.currentMediaItemIndex?.plus(
-                    1
-                )
-            ) {
-                showToast("This is the last song in the queue")
-            }
-        }
-    }
-
     private fun buildMetadataFromSong(track: Track?): MediaMetadata {
         val extras = Bundle().apply {
             if (track != null) {
@@ -486,19 +418,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
             .setArtworkUri(track?.albumArtUri)
             .setExtras(extras)
             .build()
-    }
-
-    //region UPDATE UI CONTROLLER
-    private fun updateUiFromController(mediaController: MediaController?) {
-
-        if (mediaController == null) return
-
-        val isSheetVisible = sharedViewModel.isPlayerSheetVisible.value ?: false
-
-        updateMiniPlayerMetadata(mediaController.mediaMetadata)
-        updateMiniPlayerPlayPause(mediaController.isPlaying)
-        updateMiniPlayerVisibility(mediaController.playbackState, isSheetVisible = isSheetVisible)
-
     }
 
     //region HANDLE REQUEST PERMISSION
@@ -629,55 +548,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         })
     }
 
-
-    //region MINI PLAYER VISIBILITY
-    private fun updateMiniPlayerVisibility(playbackState: Int, isSheetVisible: Boolean) {
-
-        if (isSheetVisible) {
-            binding.miniPlayer.root.visibility = View.GONE
-            return
-        }
-
-        val isVisible =
-            (playbackState == Player.STATE_READY ||
-                    playbackState == Player.STATE_BUFFERING ||
-                    mediaController?.isPlaying == true)
-
-        binding.miniPlayer.root.visibility = if (isVisible) View.VISIBLE else View.GONE
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "OnDestroy")
     }
 
-    //region MINI PLAYER PAUSE PLAY
-    private fun updateMiniPlayerPlayPause(isPlaying: Boolean) {
-        val iconRes = if (isPlaying) {
-            R.drawable.pau_btn_2
-        } else {
-            R.drawable.play_btn_2
-        }
-
-        binding.miniPlayer.playPauseBtn.setImageResource(iconRes)
-
-    }
-
-    //region MINI PLAYER DATA
-    private fun updateMiniPlayerMetadata(mediaMetadata: MediaMetadata) {
-        binding.miniPlayer.tvSongName.text = mediaMetadata.title ?: "Unknown Track"
-
-        Glide.with(this)
-            .load(mediaMetadata.artworkUri)
-            .placeholder(R.drawable.download)
-            .into(binding.miniPlayer.ivCurrent)
-    }
-
-
     //region INIT ACTION VIEW
     override fun initActionView() {
         observedSharedViewModel()
-        handleMiniPlayerItemClicked()
     }
 
     override fun onStop() {
@@ -685,11 +563,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         Log.d(TAG, "Onstop: Saving current queue zie: ${mediaController?.mediaItemCount}")
         queueSaveJob?.cancel()
         saveCurrentQueueToDatabase()
-        lifecycleScope.launch {
-            delay(500)
-            mediaController?.removeListener(playerListener)
-            MediaController.releaseFuture(controllerFeature)
-        }
+//        lifecycleScope.launch {
+//            delay(500)
+//            mediaController?.removeListener(playerListener)
+//            MediaController.releaseFuture(controllerFeature)
+//        }
 
     }
 

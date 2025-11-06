@@ -101,7 +101,7 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onStop() {
         super.onStop()
-        MediaController.releaseFuture(controllerFeature)
+        //MediaController.releaseFuture(controllerFeature)
     }
 
     override fun onDestroyView() {
