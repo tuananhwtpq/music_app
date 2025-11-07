@@ -244,47 +244,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     //region OBSERVED DATA
     private fun observedSharedViewModel() {
 
-        //handle song selected
-//        sharedViewModel.currentTrackPlaying.observe(this) { selectedSong ->
-//
-//            val selectedSongId = selectedSong?.uri.toString()
-//            val currentMediaId = mediaController?.currentMediaItem?.mediaId
-//
-//            if (selectedSongId == currentMediaId) {
-//                if (mediaController?.isPlaying == true) {
-//                    mediaController?.pause()
-//                } else {
-//                    mediaController?.play()
-//                }
-//                return@observe
-//            }
-//
-//            var foundIndex = -1
-//
-//            for (i in 0 until (mediaController?.mediaItemCount ?: 0)) {
-//                val item = mediaController?.getMediaItemAt(i)
-//                if (item?.mediaId == selectedSongId) {
-//                    foundIndex = i
-//                    break
-//                }
-//            }
-//            if (foundIndex != -1) {
-//                mediaController?.seekTo(foundIndex, 0L)
-//                mediaController?.prepare()
-//                mediaController?.play()
-//            } else {
-//                val mediaItem = MediaItem.Builder()
-//                    .setUri(selectedSong?.uri)
-//                    .setMediaId(selectedSongId)
-//                    .setMediaMetadata(buildMetadataFromSong(selectedSong))
-//                    .build()
-//
-//                mediaController?.setMediaItem(mediaItem)
-//                mediaController?.prepare()
-//                mediaController?.play()
-//            }
-//        }
-
         //handle player sheet dialog visibility
         sharedViewModel.isPlayerSheetVisible.observe(this) { isVisible ->
 

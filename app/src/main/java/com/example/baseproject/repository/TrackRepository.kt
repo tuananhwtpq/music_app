@@ -34,6 +34,7 @@ class TrackRepository(
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DURATION,
                 MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ALBUM,
                 MediaStore.Audio.Media.DATE_ADDED,
                 MediaStore.Audio.Media.BUCKET_ID,
                 MediaStore.Audio.Media.BUCKET_DISPLAY_NAME,
@@ -54,6 +55,7 @@ class TrackRepository(
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
                 val dateAddedColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
                 val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_ID)
@@ -67,6 +69,7 @@ class TrackRepository(
                     val artist = cursor.getString(artistColumn)
                     val duration = cursor.getLong(durationColumn)
                     val albumId = cursor.getLong(albumIdColumn)
+                    val album = cursor.getString(albumColumn)
                     val dateAdded = cursor.getLong(dateAddedColumn)
                     val bucketId = cursor.getLong(bucketIdColumn)
                     val bucketName = cursor.getString(bucketName)
@@ -91,7 +94,7 @@ class TrackRepository(
                             duration = duration,
                             uri = contentUri,
                             albumArtUri = albumArtUri,
-                            album = null,
+                            album = album,
                             genre = null,
                             isFavorite = isFavorite,
                             dateAdded = dateAdded,

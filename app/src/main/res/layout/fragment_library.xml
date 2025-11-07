@@ -1,18 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.LibraryFragment">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/main_tabs_holder"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Library fragment"
+        android:background="@color/gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tabIconTint="@color/tab_icon_selector"
+        app:tabIndicator="@color/green"
+        app:tabMinWidth="150dp"
+        app:tabMode="fixed"
+        app:tabRippleColor="@null"
+        app:tabSelectedTextColor="@color/tab_icon_selector"
+        app:tabTextAppearance="@style/MyCustomTabText"
+        app:tabTextColor="@color/tab_icon_selector" />
+
+    <LinearLayout
+        android:id="@+id/layout_sort_by"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_tabs_holder">
+
+        <ImageView
+            android:id="@+id/iv_sort_by"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:padding="8dp"
+            android:src="@drawable/more_btn" />
+
+        <TextView
+            android:id="@+id/tv_sort_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:text="Time Added"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/btn_list_grid_type"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:padding="8dp"
+            android:src="@drawable/grid_btn" />
+    </LinearLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/lib_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/layout_sort_by" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,6 +8,7 @@ import com.example.baseproject.databinding.ActivityFolderInfoBinding
 import com.example.baseproject.fragments.TrackInfoFragment
 import com.example.baseproject.models.Track
 import com.example.baseproject.utils.ex.showToast
+import com.example.baseproject.utils.ex.toDurationString
 import com.example.baseproject.viewmodel.FolderInfoViewModel
 import com.example.baseproject.viewmodel.MusicSharedViewModel
 import com.example.baseproject.viewmodel.SongViewModel
@@ -77,6 +78,13 @@ class FolderInfoActivity :
 
             binding.tvPlaylistName.text = folderName
             binding.tvPlaylistSongCount.text = "${tracksData.size} songs"
+
+            var itemTime = 0L
+            for (i in 0 until tracksData.size) {
+                itemTime += tracksData[i].duration
+            }
+            val formattedTime = itemTime.toDurationString()
+            binding.tvPlaylistDuration.text = "Length $formattedTime"
 
             songAdapter.submitList(tracksData)
 
