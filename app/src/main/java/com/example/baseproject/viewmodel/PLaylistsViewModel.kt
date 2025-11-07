@@ -1,11 +1,9 @@
 package com.example.baseproject.viewmodel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.baseproject.database.SongsDatabase
@@ -24,6 +22,9 @@ class PLaylistsViewModel(application: Application) : AndroidViewModel(applicatio
     val smartPlaylists: LiveData<List<PlaylistWithTracks>> = _smartPlaylists
     val userPlaylists: LiveData<List<PlaylistWithTracks>>
 
+    private val _playlistWithTracks = MutableLiveData<PlaylistWithTracks?>()
+    val playlistWithTracks: LiveData<PlaylistWithTracks?> = _playlistWithTracks
+
     companion object {
         const val TAG = "PlaylistsViewModel"
         const val FAVORITE_ID = -1L
@@ -39,6 +40,18 @@ class PLaylistsViewModel(application: Application) : AndroidViewModel(applicatio
         userPlaylists = playlistRepo.getAllPlaylistsWithTracks().asLiveData()
 
         loadSmartPlaylists()
+    }
+
+    fun loadFavoritePlaylist() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val favTracks = playlistRepo.getFavoriteTracks()
+            val playlistData = PlaylistWithTracks(
+                playlist = Playlist(playListId = FAVORITE_ID, name = "Bài hát yêu thích"),
+                tracks = favTracks
+            )
+            _playlistWithTracks.postValue(playlistData)
+
+        }
     }
 
     fun loadSmartPlaylists() {

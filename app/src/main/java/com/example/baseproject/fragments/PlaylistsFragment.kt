@@ -1,22 +1,15 @@
 package com.example.baseproject.fragments
 
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.baseproject.R
 import com.example.baseproject.activities.PlaylistInfoActivity
 import com.example.baseproject.adapters.PlaylistFavorAdapter
 import com.example.baseproject.adapters.PlaylistSongAdapter
 import com.example.baseproject.bases.BaseFragment
 import com.example.baseproject.databinding.FragmentPlaylistsBinding
-import com.example.baseproject.service.MyPlaybackService
 import com.example.baseproject.viewmodel.PLaylistsViewModel
 
 class PlaylistsFragment :
@@ -35,9 +28,9 @@ class PlaylistsFragment :
 
         playlistFavortAdapter = PlaylistFavorAdapter(
             onClick = { playlistWithTracks ->
-//                val intent = Intent(requireContext(), PlaylistInfoActivity::class.java)
-//                intent.putExtra("PLAYLIST_ID", playlistWithTracks.playlist.playListId)
-//                startActivity(intent)
+                val intent = Intent(requireContext(), PlaylistInfoActivity::class.java)
+                intent.putExtra("PLAYLIST_ID", playlistWithTracks.playlist.playListId)
+                startActivity(intent)
             }
         )
 
@@ -80,6 +73,7 @@ class PlaylistsFragment :
             } else {
                 Log.d(TAG, "Smart playlists found: ${smartPlaylists.size}")
                 playlistFavortAdapter.submitData(smartPlaylists)
+                Log.d(TAG, "Smart playlists: $smartPlaylists")
             }
         }
 
@@ -91,6 +85,7 @@ class PlaylistsFragment :
             } else {
                 Log.d(TAG, "User playlists found: ${userPlaylists.size}")
                 playlistSongAdapter.submitData(userPlaylists)
+                Log.d(TAG, "User [;au;ist: $userPlaylists")
             }
         }
 

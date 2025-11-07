@@ -1,13 +1,7 @@
 package com.example.baseproject.activities
 
-import android.nfc.Tag
-import android.os.Bundle
 import android.util.Log
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.baseproject.R
@@ -18,6 +12,10 @@ import com.example.baseproject.fragments.TrackInfoFragment
 import com.example.baseproject.models.Track
 import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
+import com.example.baseproject.viewmodel.PLaylistsViewModel.Companion.FAVORITE_ID
+import com.example.baseproject.viewmodel.PLaylistsViewModel.Companion.MOST_PLAYED_ID
+import com.example.baseproject.viewmodel.PLaylistsViewModel.Companion.RECENTLY_ADDED_ID
+import com.example.baseproject.viewmodel.PLaylistsViewModel.Companion.RECENTLY_PLAYED_ID
 import com.example.baseproject.viewmodel.PlaylistInfoViewModel
 import com.example.baseproject.viewmodel.SongViewModel
 
@@ -34,13 +32,27 @@ class PlaylistInfoActivity :
     override fun initData() {
         playlistId = intent.getLongExtra("PLAYLIST_ID", -1L)
 
-        if (playlistId == -1L) {
+        if (playlistId == 0L) {
             showToast("Lỗi: Không tìm thấy playlist.")
             finish()
             return
         }
 
-        viewModel.loadPlaylist(playlistId)
+        when (playlistId) {
+            FAVORITE_ID -> viewModel.loadFavoritePlaylist()
+            RECENTLY_PLAYED_ID -> viewModel.loadRecentlyPlayedPlaylist()
+            RECENTLY_ADDED_ID -> viewModel.loadRecentlyAddedPlaylist()
+            MOST_PLAYED_ID -> viewModel.loadMostPlayedPlaylist()
+            else -> {
+                if (playlistId > 0) {
+                    viewModel.loadPlaylist(playlistId)
+                } else {
+                    showToast("Lỗi: Không tìm thấy playlist.")
+                    finish()
+                }
+            }
+        }
+
     }
 
     override fun initView() {

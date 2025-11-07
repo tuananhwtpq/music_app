@@ -18,17 +18,14 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
 import com.example.baseproject.R
 import com.example.baseproject.adapters.MainViewPagerAdapter
 import com.example.baseproject.bases.BaseActivity
 import com.example.baseproject.database.SongsDatabase
 import com.example.baseproject.databinding.ActivityMainBinding
-import com.example.baseproject.fragments.PlayStackBottomSheetFragment
 import com.example.baseproject.fragments.PlayerBottomSheetDialogFragment
 import com.example.baseproject.models.PlayListSongCrossRef
 import com.example.baseproject.models.Track
@@ -40,9 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
@@ -379,6 +374,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                     if (mediaStoreId == mediaItemId) {
                         val newExtras = Bundle(itemExtras).apply {
                             putBoolean("is_favorite", favoriteStatus)
+                            putLong("mediaStoreId", mediaStoreId)
                         }
 
                         val newMetaData = mediaItem.mediaMetadata.buildUpon()

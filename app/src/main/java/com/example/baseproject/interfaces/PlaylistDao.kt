@@ -40,7 +40,7 @@ interface PlaylistDao {
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE play_list_id = :playlistId")
-    fun getPlaylistWithTracksById(playlistId: Long): Flow<PlaylistWithTracks>
+    fun getPlaylistWithTracksById(playlistId: Long): PlaylistWithTracks
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE play_list_id = :playlistId")
@@ -54,4 +54,7 @@ interface PlaylistDao {
         clearPlaylist(playlistId)
         insertAllTracksToPlaylist(tracks)
     }
+
+    @Query("SELECT * FROM tracks WHERE bucket_id = :folderId")
+    suspend fun getTracksInFolderById(folderId: Long): List<Track>
 }

@@ -25,6 +25,8 @@ data class Track(
     @ColumnInfo("is_favorite") var isFavorite: Boolean = false,
     @ColumnInfo("date_added") var dateAdded: Long? = null,
     @ColumnInfo("year") var year: Int? = null,
+    @ColumnInfo("bucket_id") var bucketId: Long? = null,
+    @ColumnInfo("bucket_display_name") var bucketDisplayName: String? = null,
 ) : Parcelable, ListItem()
 
 

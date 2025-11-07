@@ -1,6 +1,7 @@
 package com.example.baseproject.adapters
 
 import android.annotation.SuppressLint
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -24,6 +25,34 @@ class PlayStackAdapter(
 
     inner class PlayStackViewHolder(private val binding: ItemPlayStackBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.favoriteBtn.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = trackList[position]
+                    onTymClicked(item)
+                }
+            }
+
+            binding.deleteBtn.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = trackList[position]
+                    onDeleteClicked(item)
+                }
+            }
+
+            binding.root.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = trackList[position]
+                    onItemClicked(item)
+                }
+            }
+        }
+
+
         @SuppressLint("ResourceAsColor")
         fun bind(item: MediaItem) {
             binding.tvSongName.text = item.mediaMetadata.title
@@ -47,11 +76,6 @@ class PlayStackAdapter(
 
             }
 
-            Log.d(
-                TAG,
-                "bind: Current Media Item in ViewHolder: ${curentMediaItem?.mediaMetadata?.title}"
-            )
-
             if (item.mediaId == curentMediaItem?.mediaId) {
                 binding.tvSongName.setTextColor(ContextCompat.getColor(context, R.color.green))
             } else {
@@ -59,10 +83,40 @@ class PlayStackAdapter(
 
             }
 
-            binding.favoriteBtn.setOnClickListener { onTymClicked(item) }
-            binding.deleteBtn.setOnClickListener { onDeleteClicked(item) }
-            binding.root.setOnClickListener { onItemClicked(item) }
+//            binding.favoriteBtn.setOnClickListener { onTymClicked(item) }
+//            binding.deleteBtn.setOnClickListener { onDeleteClicked(item) }
+//            binding.root.setOnClickListener { onItemClicked(item) }
         }
+    }
+
+    fun updateItemFavorStatus(playlistId: Long, isFavorite: Boolean) {
+        Log.d(TAG, "update item is called")
+        val index = trackList.indexOfFirst {
+            it.mediaMetadata.extras?.getLong("mediaStoreId", -1L) == playlistId
+        }
+
+        Log.d(TAG, "playlistid: $playlistId - Index: $index")
+
+        if (index != -1) {
+
+            val oldItem = trackList[index]
+
+            val newExtras = Bundle(oldItem.mediaMetadata.extras).apply {
+                putBoolean("is_favorite", isFavorite)
+            }
+
+            val newMetadata = oldItem.mediaMetadata.buildUpon()
+                .setExtras(newExtras)
+                .build()
+
+            val newItem = oldItem.buildUpon()
+                .setMediaMetadata(newMetadata)
+                .build()
+
+            trackList[index] = newItem
+            notifyItemChanged(index)
+        }
+
     }
 
     @SuppressLint("NotifyDataSetChanged")

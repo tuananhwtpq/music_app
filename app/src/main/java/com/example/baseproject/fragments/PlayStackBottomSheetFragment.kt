@@ -14,6 +14,7 @@ import com.example.baseproject.adapters.PlayStackAdapter
 import com.example.baseproject.databinding.FragmentPlayStackBottomSheetBinding
 import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
+import com.example.baseproject.viewmodel.SongViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
@@ -31,6 +32,7 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
 
     private lateinit var playStackAdapter: PlayStackAdapter
     private val sharedViewModel: MusicSharedViewModel by activityViewModels()
+    private val songViewModel: SongViewModel by activityViewModels()
 
 
     override fun onCreateView(
@@ -93,6 +95,15 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
         }
+
+//        sharedViewModel.favoriteStatusChange.observe(viewLifecycleOwner) { statusChange ->
+//            if (statusChange == null) return@observe
+//
+//            val (trackId, isFavorite) = statusChange
+//
+//            playStackAdapter.updateItemFavorStatus(trackId, isFavorite)
+//            sharedViewModel.onFavoriteChangeHandled()
+//        }
     }
 
     private fun setupAdapter() {
@@ -103,7 +114,12 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                 val currentIsFavorite = extras?.getBoolean("is_favorite") ?: false
 
                 if (mediaStoreId != null && mediaStoreId != -1L) {
-                    sharedViewModel.onFavoriteChanged(mediaStoreId, !currentIsFavorite)
+                    //sharedViewModel.onFavoriteChanged(mediaStoreId, !currentIsFavorite)
+                    songViewModel.updateFavoriteStatus(
+                        mediaStoreId,
+                        !currentIsFavorite,
+                        sharedViewModel
+                    )
                 }
             },
 

@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import com.example.baseproject.interfaces.PlaylistDao
 import com.example.baseproject.interfaces.TrackDao
 import com.example.baseproject.models.Track
@@ -33,7 +34,9 @@ class TrackRepository(
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DURATION,
                 MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.DATE_ADDED
+                MediaStore.Audio.Media.DATE_ADDED,
+                MediaStore.Audio.Media.BUCKET_ID,
+                MediaStore.Audio.Media.BUCKET_DISPLAY_NAME,
             )
 
             val selection =
@@ -51,7 +54,11 @@ class TrackRepository(
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+                val dateAddedColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+                val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_ID)
+                val bucketName =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_DISPLAY_NAME)
 
 
                 while (cursor.moveToNext()) {
@@ -61,6 +68,9 @@ class TrackRepository(
                     val duration = cursor.getLong(durationColumn)
                     val albumId = cursor.getLong(albumIdColumn)
                     val dateAdded = cursor.getLong(dateAddedColumn)
+                    val bucketId = cursor.getLong(bucketIdColumn)
+                    val bucketName = cursor.getString(bucketName)
+
 
                     val existingTrack = existingTrackMap[id]
                     val isFavorite = existingTrack?.isFavorite ?: false
@@ -86,11 +96,14 @@ class TrackRepository(
                             isFavorite = isFavorite,
                             dateAdded = dateAdded,
                             year = null,
+                            bucketId = bucketId,
+                            bucketDisplayName = bucketName
                         )
                     )
                 }
             }
             trackDao.insertAll(trackList)
+            Log.d("TrackRepository", "Track list: $trackList")
         }
     }
 
