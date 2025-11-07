@@ -18,7 +18,7 @@ class SongAdapter(
         const val TAG = "SongAdapter_DEBUG"
     }
 
-    private val tracks = mutableListOf<Track>()
+    val tracks = mutableListOf<Track>()
 
     inner class SongViewHolder(private val binding: SongItemBinding) :
         RecyclerView.ViewHolder(binding.root) {

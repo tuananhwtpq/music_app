@@ -1,12 +1,18 @@
 package com.example.baseproject.models
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import android.net.Uri
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-@Entity(tableName = "folders")
+@Parcelize
 data class Folders(
-    @PrimaryKey
-    @ColumnInfo("folder_id") val folderId: Long,
-    @ColumnInfo("folder_path") val folderPath: String
-)
+    val folderId: Long,
+    val folderName: String,
+    val tracks: List<Track>
+) : Parcelable {
+    val trackCount: Int
+        get() = tracks.size
+
+    val firstTrackAlbumUri: Uri?
+        get() = tracks.firstOrNull()?.albumArtUri
+}

@@ -27,7 +27,7 @@ class LanguageActivity : BaseActivity<ActivityLanguageBinding>(ActivityLanguageB
         isFromHome = intent.getBooleanExtra(Constants.LANGUAGE_EXTRA, true)
         if (!isFromHome) {
             lifecycleScope.launch {
-                requestNotiPer()
+                //requestNotiPer()
             }
         }
     }

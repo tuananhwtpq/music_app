@@ -12,7 +12,9 @@ import androidx.media3.common.Timeline
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.baseproject.adapters.PlayStackAdapter
 import com.example.baseproject.databinding.FragmentPlayStackBottomSheetBinding
+import com.example.baseproject.utils.ex.showToast
 import com.example.baseproject.viewmodel.MusicSharedViewModel
+import com.example.baseproject.viewmodel.SongViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
@@ -30,6 +32,7 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
 
     private lateinit var playStackAdapter: PlayStackAdapter
     private val sharedViewModel: MusicSharedViewModel by activityViewModels()
+    private val songViewModel: SongViewModel by activityViewModels()
 
 
     override fun onCreateView(
@@ -45,6 +48,13 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
 
         setupAdapter()
         setupViewModel()
+        handleButton()
+    }
+
+    private fun handleButton() {
+        binding.ivAddBtn.setOnClickListener { showToast("Đang phát triển") }
+
+        binding.ivDeleteBtn.setOnClickListener { showToast("Đang phát triển") }
     }
 
     private fun setupViewModel() {
@@ -85,12 +95,32 @@ class PlayStackBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             })
         }
+
+//        sharedViewModel.favoriteStatusChange.observe(viewLifecycleOwner) { statusChange ->
+//            if (statusChange == null) return@observe
+//
+//            val (trackId, isFavorite) = statusChange
+//
+//            playStackAdapter.updateItemFavorStatus(trackId, isFavorite)
+//            sharedViewModel.onFavoriteChangeHandled()
+//        }
     }
 
     private fun setupAdapter() {
         playStackAdapter = PlayStackAdapter(
-            onTymClicked = { track ->
+            onTymClicked = { mediaItem ->
+                val extras = mediaItem.mediaMetadata.extras
+                val mediaStoreId = extras?.getLong("mediaStoreId", -1L)
+                val currentIsFavorite = extras?.getBoolean("is_favorite") ?: false
 
+                if (mediaStoreId != null && mediaStoreId != -1L) {
+                    //sharedViewModel.onFavoriteChanged(mediaStoreId, !currentIsFavorite)
+                    songViewModel.updateFavoriteStatus(
+                        mediaStoreId,
+                        !currentIsFavorite,
+                        sharedViewModel
+                    )
+                }
             },
 
             onDeleteClicked = { mediaItem ->

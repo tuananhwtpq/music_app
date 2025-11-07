@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import com.example.baseproject.interfaces.PlaylistDao
 import com.example.baseproject.interfaces.TrackDao
 import com.example.baseproject.models.Track
@@ -32,10 +33,15 @@ class TrackRepository(
                 MediaStore.Audio.Media.TITLE,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.ALBUM_ID
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.DATE_ADDED,
+                MediaStore.Audio.Media.BUCKET_ID,
+                MediaStore.Audio.Media.BUCKET_DISPLAY_NAME,
             )
 
-            val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+            val selection =
+                "${MediaStore.Audio.Media.IS_MUSIC} != 0"
 
             context.contentResolver.query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -49,6 +55,12 @@ class TrackRepository(
                 val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
                 val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+                val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+                val dateAddedColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
+                val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_ID)
+                val bucketName =
+                    cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.BUCKET_DISPLAY_NAME)
 
 
                 while (cursor.moveToNext()) {
@@ -57,6 +69,11 @@ class TrackRepository(
                     val artist = cursor.getString(artistColumn)
                     val duration = cursor.getLong(durationColumn)
                     val albumId = cursor.getLong(albumIdColumn)
+                    val album = cursor.getString(albumColumn)
+                    val dateAdded = cursor.getLong(dateAddedColumn)
+                    val bucketId = cursor.getLong(bucketIdColumn)
+                    val bucketName = cursor.getString(bucketName)
+
 
                     val existingTrack = existingTrackMap[id]
                     val isFavorite = existingTrack?.isFavorite ?: false
@@ -77,16 +94,19 @@ class TrackRepository(
                             duration = duration,
                             uri = contentUri,
                             albumArtUri = albumArtUri,
-                            album = null,
+                            album = album,
                             genre = null,
                             isFavorite = isFavorite,
-                            dateAdded = null,
+                            dateAdded = dateAdded,
                             year = null,
+                            bucketId = bucketId,
+                            bucketDisplayName = bucketName
                         )
                     )
                 }
             }
             trackDao.insertAll(trackList)
+            Log.d("TrackRepository", "Track list: $trackList")
         }
     }
 
@@ -99,6 +119,18 @@ class TrackRepository(
     suspend fun updateFavoriteStatus(trackId: Long, isFavorite: Boolean) {
         withContext(Dispatchers.IO) {
             trackDao.updateFavoriteStatus(trackId, isFavorite)
+        }
+    }
+
+    suspend fun getFavoriteTracks(): List<Track> {
+        return withContext(Dispatchers.IO) {
+            trackDao.getFavoriteTracks()
+        }
+    }
+
+    suspend fun getRecentlyAddedTracks(): List<Track> {
+        return withContext(Dispatchers.IO) {
+            trackDao.getRecentlyAddedTracks()
         }
     }
 

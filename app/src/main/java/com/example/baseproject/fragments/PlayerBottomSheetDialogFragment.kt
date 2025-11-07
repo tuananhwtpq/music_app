@@ -48,7 +48,14 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initController()
+        //initController()
+
+        sharedViewModel.mediaController.observe(viewLifecycleOwner) { controller ->
+            if (controller != null) {
+                binding.playerView.player = controller
+            }
+        }
+
         observedSharedViewModel()
     }
 
@@ -94,7 +101,7 @@ class PlayerBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onStop() {
         super.onStop()
-        MediaController.releaseFuture(controllerFeature)
+        //MediaController.releaseFuture(controllerFeature)
     }
 
     override fun onDestroyView() {

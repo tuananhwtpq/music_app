@@ -25,8 +25,13 @@ interface TrackDao {
     @Query("SELECT * FROM tracks")
     suspend fun getAllTracksOnce(): List<Track>
 
+    @Query("SELECT * FROM tracks WHERE is_favorite = 1")
+    suspend fun getFavoriteTracks(): List<Track>
+
     @Query("UPDATE tracks SET is_favorite = :isFavorite WHERE media_store_id = :trackId")
     suspend fun updateFavoriteStatus(trackId: Long, isFavorite: Boolean)
 
+    @Query("SELECT * FROM tracks ORDER BY date_added DESC")
+    suspend fun getRecentlyAddedTracks(): List<Track>
 
 }

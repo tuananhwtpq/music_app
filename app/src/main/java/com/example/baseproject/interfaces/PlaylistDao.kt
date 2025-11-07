@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPlayList(playlist: Playlist)
+    suspend fun insertPlayList(playlist: Playlist): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addTrackToPlaylist(crossRef: PlayListSongCrossRef)
@@ -32,15 +32,15 @@ interface PlaylistDao {
     suspend fun getPlayListById(playListId: Long): Playlist
 
     @Transaction
-    @Query("SELECT * FROM PLAYLISTS")
-    fun getPlayListWithTracks(): List<PlaylistWithTracks>
+    @Query("SELECT * FROM PLAYLISTS WHERE play_list_id > 0")
+    fun getPlayListWithTracks(): Flow<List<PlaylistWithTracks>>
 
     @Query("SELECT * FROM tracks WHERE media_store_id IN (:trackIds)")
     suspend fun getTracksByIds(trackIds: List<Long>): List<Track>
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE play_list_id = :playlistId")
-    fun getPlaylistWithTracksById(playlistId: Long): Flow<PlaylistWithTracks>
+    fun getPlaylistWithTracksById(playlistId: Long): PlaylistWithTracks
 
     @Transaction
     @Query("SELECT * FROM playlists WHERE play_list_id = :playlistId")
@@ -54,4 +54,7 @@ interface PlaylistDao {
         clearPlaylist(playlistId)
         insertAllTracksToPlaylist(tracks)
     }
+
+    @Query("SELECT * FROM tracks WHERE bucket_id = :folderId")
+    suspend fun getTracksInFolderById(folderId: Long): List<Track>
 }

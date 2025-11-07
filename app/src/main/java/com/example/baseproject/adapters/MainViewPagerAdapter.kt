@@ -1,17 +1,13 @@
 package com.example.baseproject.adapters
 
-import android.app.Activity
-import android.os.Bundle
-import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.baseproject.fragments.FoldersFragment
 import com.example.baseproject.fragments.LibraryFragment
 import com.example.baseproject.fragments.PlaylistsFragment
 import com.example.baseproject.fragments.SongsFragment
-import kotlin.jvm.Throws
+import com.example.baseproject.fragments.VisualizerFragment
 
 class MainViewPagerAdapter(fragmentActivity: FragmentActivity) :
     FragmentStateAdapter(fragmentActivity) {
@@ -22,7 +18,7 @@ class MainViewPagerAdapter(fragmentActivity: FragmentActivity) :
         return when (position) {
             0 -> SongsFragment()
             1 -> PlaylistsFragment()
-            2 -> SongsFragment()
+            2 -> VisualizerFragment()
             3 -> LibraryFragment()
             4 -> FoldersFragment()
             else -> throw IllegalStateException("Invalid position")
